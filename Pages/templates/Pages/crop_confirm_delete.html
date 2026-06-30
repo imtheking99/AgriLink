@@ -1,0 +1,27 @@
+{% extends 'Pages/base.html' %}
+
+{% block title %}Delete Crop - AgriLink{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <div class="form-card" style="text-align: center;">
+    <i class="fa-solid fa-triangle-exclamation" style="font-size: 55px; color: #dc2626; margin-bottom: 20px;"></i>
+    <h2>Delete Crop Listing</h2>
+    <p class="subtitle" style="color: #4b5563;">Are you sure you want to delete the crop listing for <strong>{{ crop.crop_name }}</strong>?</p>
+    
+    <div style="background: #fcf8f8; padding: 20px; border-radius: 12px; border: 1.5px solid #fecaca; margin-bottom: 25px; text-align: left;">
+      <p style="margin-bottom: 8px;"><strong>Quantity:</strong> {{ crop.quantity }}</p>
+      <p style="margin-bottom: 8px;"><strong>District:</strong> {{ crop.district }}</p>
+      <p><strong>Expected Harvest:</strong> {{ crop.expected_harvest_date|date:"F d, Y" }}</p>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-actions">
+        <a href="{% url 'farmer_dashboard' %}" class="btn outline" style="text-decoration: none; text-align: center;">Cancel</a>
+        <button type="submit" class="btn delete" style="padding: 13px 25px; font-weight: 800; font-size: 16px; border-radius: 12px; cursor: pointer; flex: 1;"><i class="fa-solid fa-trash-can"></i> Confirm Delete</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

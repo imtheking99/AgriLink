@@ -1,0 +1,60 @@
+{% extends 'Pages/base.html' %}
+{% load static %}
+
+{% block title %}Farmer Dashboard - AgriLink{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+  <div class="dashboard-header">
+    <div>
+      <h1>Farmer Dashboard</h1>
+      <p style="color: #666; margin-top: 5px;">Manage and monitor your crop listings</p>
+    </div>
+    <a href="{% url 'crop_add' %}" class="btn solid"><i class="fa-solid fa-plus"></i> Register New Crop</a>
+  </div>
+
+  <div class="crop-grid">
+    {% for crop in crops %}
+      <div class="crop-card">
+        <div class="crop-img-container">
+          {% if crop.crop_image %}
+            <img src="{{ crop.crop_image.url }}" alt="{{ crop.crop_name }}">
+          {% else %}
+            <img src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=600&q=80" alt="Placeholder crop">
+          {% endif %}
+        </div>
+        <div class="crop-details">
+          <h3>{{ crop.crop_name }}</h3>
+          
+          <div class="crop-meta">
+            <div class="crop-meta-item">
+              <span class="label">Quantity</span>
+              <span class="val">{{ crop.quantity }}</span>
+            </div>
+            <div class="crop-meta-item">
+              <span class="label">District</span>
+              <span class="val">{{ crop.district }}</span>
+            </div>
+            <div class="crop-meta-item" style="grid-column: span 2;">
+              <span class="label">Expected Harvest Date</span>
+              <span class="val"><i class="fa-regular fa-calendar-days" style="margin-right: 5px; color: var(--green);"></i> {{ crop.expected_harvest_date|date:"F d, Y" }}</span>
+            </div>
+          </div>
+
+          <div class="crop-card-actions">
+            <a href="{% url 'crop_edit' crop.id %}" class="btn edit"><i class="fa-solid fa-pen-to-square"></i> Edit</a>
+            <a href="{% url 'crop_delete' crop.id %}" class="btn delete"><i class="fa-solid fa-trash-can"></i> Delete</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="no-crops">
+        <i class="fa-solid fa-wheat-awn"></i>
+        <h3>No Crops Registered Yet</h3>
+        <p>Start listing your agricultural crops to connect with buyers and manage your harvest.</p>
+        <a href="{% url 'crop_add' %}" class="btn solid"><i class="fa-solid fa-plus"></i> Register Your First Crop</a>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

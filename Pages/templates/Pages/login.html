@@ -1,0 +1,45 @@
+{% extends 'Pages/base.html' %}
+
+{% block title %}Login - AgriLink{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <div class="form-card">
+    <h2>Farmer Login</h2>
+    <p class="subtitle">Access your farmer dashboard to manage your crops</p>
+    
+    {% if form.non_field_errors %}
+    <div class="form-errors">
+      {% for error in form.non_field_errors %}
+        <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+      
+      {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+        <span class="form-helptext">{{ field.help_text|safe }}</span>
+        {% endif %}
+        {% if field.errors %}
+        <span style="color: #dc2626; font-size: 13px;">{{ field.errors.0 }}</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div class="form-actions">
+        <button type="submit" class="btn solid">Login</button>
+      </div>
+    </form>
+
+    <div class="form-footer">
+      <p>Don't have a farmer account? <a href="{% url 'register' %}">Register here</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'Pages/base.html' %}
+
+{% block title %}{{ action }} Crop - AgriLink{% endblock %}
+
+{% block content %}
+<section class="form-section">
+  <div class="form-card">
+    <h2>{{ action }} Crop Listing</h2>
+    <p class="subtitle">Enter the details of your harvest below to listing</p>
+
+    {% if form.non_field_errors %}
+    <div class="form-errors">
+      {% for error in form.non_field_errors %}
+        <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+        <span class="form-helptext">{{ field.help_text|safe }}</span>
+        {% endif %}
+        {% if field.errors %}
+        <span style="color: #dc2626; font-size: 13px;">{{ field.errors.0 }}</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div class="form-actions">
+        <a href="{% url 'farmer_dashboard' %}" class="btn outline" style="text-decoration: none; text-align: center;">Cancel</a>
+        <button type="submit" class="btn solid">Save Crop</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

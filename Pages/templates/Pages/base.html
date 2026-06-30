@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}AgriLink - Smart Agricultural Trading & Advisory{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'style.css' %}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* Styling for alert messages */
+    .message-container {
+      max-width: 1200px;
+      margin: 20px auto 0;
+      padding: 0 5%;
+    }
+    .alert {
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+      border-left: 5px solid #28a745;
+    }
+    .alert-error, .alert-danger {
+      background-color: #f8d7da;
+      color: #721c24;
+      border-left: 5px solid #dc3545;
+    }
+    .alert-info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border-left: 5px solid #17a2b8;
+    }
+    .user-tag {
+      font-weight: 700;
+      color: var(--green);
+      margin-right: 15px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<header class="navbar">
+  <div class="logo">
+    <div class="logo-icon"><i class="fa-solid fa-leaf"></i></div>
+    <div>
+      <h2><a href="{% url 'home' %}" style="text-decoration: none; color: inherit;">AgriLink</a></h2>
+      <p>Connect • Trade • Grow</p>
+    </div>
+  </div>
+
+  <nav class="nav-links" id="navLinks">
+    <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'farmer_dashboard' %}" class="{% if 'farmer' in request.path %}active{% endif %}">Farmer Dashboard</a>
+    {% endif %}
+    <a href="{% url 'home' %}#about">About Us</a>
+    <a href="{% url 'home' %}#features">Features</a>
+    <a href="{% url 'home' %}#prices">Market Prices</a>
+  </nav>
+
+  <div class="nav-buttons">
+    {% if user.is_authenticated %}
+      <span class="user-tag"><i class="fa-solid fa-user-circle"></i> {{ user.username }}</span>
+      <a href="{% url 'logout' %}" class="btn outline" style="text-decoration: none;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    {% else %}
+      <a href="{% url 'login' %}" class="btn outline" style="text-decoration: none;"><i class="fa-solid fa-user"></i> Login</a>
+      <a href="{% url 'register' %}" class="btn solid" style="text-decoration: none;"><i class="fa-solid fa-user-plus"></i> Register</a>
+    {% endif %}
+  </div>
+
+  <button class="menu-btn" onclick="toggleMenu()">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+</header>
+
+{% if messages %}
+<div class="message-container">
+  {% for message in messages %}
+  <div class="alert alert-{% if message.tags == 'error' %}error{% else %}{{ message.tags }}{% endif %}">
+    <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% elif message.tags == 'error' or message.tags == 'danger' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %}" style="margin-right: 10px;"></i>
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% block content %}
+{% endblock %}
+
+<footer>
+  <div class="footer-grid">
+    <div>
+      <h2><i class="fa-solid fa-leaf"></i> AgriLink</h2>
+      <p>Empowering agriculture through technology. Connecting farmers, buyers and opportunities.</p>
+    </div>
+
+    <div>
+      <h3>Quick Links</h3>
+      <a href="{% url 'home' %}">Home</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'farmer_dashboard' %}">Farmer Dashboard</a>
+      {% endif %}
+      <a href="{% url 'home' %}#features">Features</a>
+    </div>
+
+    <div>
+      <h3>Contact Us</h3>
+      <p><i class="fa-solid fa-phone"></i> +94 77 123 4567</p>
+      <p><i class="fa-solid fa-envelope"></i> info@agrilink.com</p>
+      <p><i class="fa-solid fa-location-dot"></i> Sri Lanka</p>
+    </div>
+
+    <div>
+      <h3>Follow Us</h3>
+      <div class="socials">
+        <i class="fa-brands fa-facebook-f"></i>
+        <i class="fa-brands fa-whatsapp"></i>
+        <i class="fa-brands fa-x-twitter"></i>
+        <i class="fa-brands fa-instagram"></i>
+      </div>
+    </div>
+  </div>
+
+  <p class="copyright">© 2025 AgriLink. All Rights Reserved.</p>
+</footer>
+
+<script src="{% static 'script.js' %}"></script>
+</body>
+</html>

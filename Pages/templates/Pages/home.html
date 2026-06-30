@@ -1,43 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgriLink - Smart Agricultural Trading & Advisory</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-</head>
-<body>
+{% extends 'Pages/base.html' %}
+{% load static %}
 
-<header class="navbar">
-  <div class="logo">
-    <div class="logo-icon"><i class="fa-solid fa-leaf"></i></div>
-    <div>
-      <h2>AgriLink</h2>
-      <p>Connect • Trade • Grow</p>
-    </div>
-  </div>
+{% block title %}AgriLink - Smart Agricultural Trading & Advisory{% endblock %}
 
-  <nav class="nav-links" id="navLinks">
-    <a class="active" href="#">Home</a>
-    <a href="#">About Us</a>
-    <a href="#">Features</a>
-    <a href="#">How It Works</a>
-    <a href="#">Market Prices</a>
-    <a href="#">Weather</a>
-    <a href="#">Contact Us</a>
-  </nav>
-
-  <div class="nav-buttons">
-    <button class="btn outline"><i class="fa-solid fa-user"></i> Login</button>
-    <button class="btn solid"><i class="fa-solid fa-user-plus"></i> Register</button>
-  </div>
-
-  <button class="menu-btn" onclick="toggleMenu()">
-    <i class="fa-solid fa-bars"></i>
-  </button>
-</header>
-
+{% block content %}
 <section class="hero">
   <div class="hero-content">
     <span class="badge"><i class="fa-solid fa-seedling"></i> Smart Agriculture. Better Future.</span>
@@ -56,14 +22,18 @@
     </div>
 
     <div class="hero-actions">
-      <button class="btn solid big">Get Started <i class="fa-solid fa-arrow-right"></i></button>
-      <button class="btn outline big">Explore Market <i class="fa-solid fa-basket-shopping"></i></button>
+      {% if user.is_authenticated %}
+        <a href="{% url 'farmer_dashboard' %}" class="btn solid big" style="text-decoration: none;">Go to Dashboard <i class="fa-solid fa-arrow-right"></i></a>
+      {% else %}
+        <a href="{% url 'register' %}" class="btn solid big" style="text-decoration: none;">Get Started <i class="fa-solid fa-arrow-right"></i></a>
+        <a href="{% url 'login' %}" class="btn outline big" style="text-decoration: none;">Login <i class="fa-solid fa-sign-in-alt"></i></a>
+      {% endif %}
     </div>
   </div>
 
   <div class="hero-image">
     <div class="circle"></div>
-    <img src="imghome/Farmer in agriculture field.png" alt="Farmer in agriculture field">
+    <img src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=600&q=80" alt="Farmer in agriculture field">
     <div class="floating-card price">
       <p>Market Price</p>
       <h3>Rs. 120.00/kg</h3>
@@ -82,7 +52,7 @@
   </div>
 </section>
 
-<section class="features">
+<section class="features" id="features">
   <h2>Everything You Need in One Platform</h2>
 
   <div class="feature-grid">
@@ -107,48 +77,13 @@
     <h2>Are You a Farmer or a Buyer?</h2>
     <p>Join AgriLink today and experience the smart way of agriculture trading.</p>
     <div>
-      <button class="btn solid">I'm a Farmer</button>
-      <button class="btn outline">I'm a Buyer</button>
+      {% if user.is_authenticated %}
+        <a href="{% url 'farmer_dashboard' %}" class="btn solid" style="text-decoration: none;">Manage Crops</a>
+      {% else %}
+        <a href="{% url 'register' %}" class="btn solid" style="text-decoration: none;">I'm a Farmer</a>
+        <a href="{% url 'register' %}" class="btn outline" style="text-decoration: none;">I'm a Buyer</a>
+      {% endif %}
     </div>
   </div>
 </section>
-
-<footer>
-  <div class="footer-grid">
-    <div>
-      <h2><i class="fa-solid fa-leaf"></i> AgriLink</h2>
-      <p>Empowering agriculture through technology. Connecting farmers, buyers and opportunities.</p>
-    </div>
-
-    <div>
-      <h3>Quick Links</h3>
-      <a href="#">Home</a>
-      <a href="#">About Us</a>
-      <a href="#">Features</a>
-      <a href="#">Weather</a>
-    </div>
-
-    <div>
-      <h3>Contact Us</h3>
-      <p><i class="fa-solid fa-phone"></i> +94 77 123 4567</p>
-      <p><i class="fa-solid fa-envelope"></i> info@agrilink.com</p>
-      <p><i class="fa-solid fa-location-dot"></i> Sri Lanka</p>
-    </div>
-
-    <div>
-      <h3>Follow Us</h3>
-      <div class="socials">
-        <i class="fa-brands fa-facebook-f"></i>
-        <i class="fa-brands fa-whatsapp"></i>
-        <i class="fa-brands fa-x-twitter"></i>
-        <i class="fa-brands fa-instagram"></i>
-      </div>
-    </div>
-  </div>
-
-  <p class="copyright">© 2025 AgriLink. All Rights Reserved.</p>
-</footer>
-
-<script src="script.js"></script>
-</body>
-</html>
+{% endblock %}

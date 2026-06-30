@@ -534,3 +534,287 @@ footer p {
     gap: 25px;
   }
 }
+
+/* ==========================================
+   FORM & DASHBOARD STYLES (ADDED FOR DJANGO)
+   ========================================== */
+.form-section {
+  padding: 60px 5%;
+  background: #f8fbf9;
+  min-height: calc(100vh - 86px - 250px);
+  display: grid;
+  place-items: center;
+}
+
+.form-card {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 550px;
+}
+
+.form-card h2 {
+  font-size: 28px;
+  color: var(--dark);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.form-card p.subtitle {
+  color: #666;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 700;
+  color: #333;
+  font-size: 15px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: #fdfdfd;
+  font-family: inherit;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(0, 125, 60, 0.15);
+  background: #fff;
+}
+
+.form-input-file {
+  width: 100%;
+  padding: 10px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.form-actions {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+}
+
+.form-actions .btn {
+  flex: 1;
+  text-align: center;
+}
+
+.form-footer {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 15px;
+  color: #555;
+}
+
+.form-footer a {
+  color: var(--green);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.form-footer a:hover {
+  text-decoration: underline;
+}
+
+.form-errors {
+  background: #fdf2f2;
+  border: 1px solid #f8b4b4;
+  color: #9b1c1c;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.form-errors ul {
+  padding-left: 20px;
+  margin-top: 5px;
+}
+
+.form-helptext {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* DASHBOARD STYLES */
+.dashboard-section {
+  padding: 50px 5%;
+  min-height: calc(100vh - 86px - 250px);
+  background: #f8fbf9;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.dashboard-header h1 {
+  font-size: clamp(26px, 4vw, 36px);
+  color: var(--dark);
+}
+
+.crop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 30px;
+}
+
+.crop-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.crop-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+}
+
+.crop-img-container {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+  background: #e2e8f0;
+}
+
+.crop-img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.crop-details {
+  padding: 25px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.crop-details h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+  color: var(--dark);
+}
+
+.crop-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+  font-size: 15px;
+}
+
+.crop-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.crop-meta-item span.label {
+  color: #777;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.crop-meta-item span.val {
+  font-weight: 600;
+  color: #333;
+}
+
+.crop-card-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 15px;
+}
+
+.crop-card-actions .btn {
+  flex: 1;
+  font-size: 14px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.btn.edit {
+  background: white;
+  border: 1.8px solid var(--green);
+  color: var(--green);
+}
+
+.btn.edit:hover {
+  background: var(--light);
+}
+
+.btn.delete {
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+}
+
+.btn.delete:hover {
+  background: #fecaca;
+  transform: translateY(-3px);
+}
+
+.no-crops {
+  grid-column: 1 / -1;
+  background: white;
+  padding: 60px 40px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+}
+
+.no-crops i {
+  font-size: 60px;
+  color: #cbd5e1;
+  margin-bottom: 20px;
+}
+
+.no-crops h3 {
+  font-size: 24px;
+  color: #475569;
+  margin-bottom: 10px;
+}
+
+.no-crops p {
+  color: #64748b;
+  margin-bottom: 25px;
+}
+
