@@ -1,0 +1,124 @@
+{% extends 'Pages/base.html' %}
+{% load static %}
+
+{% block title %}Search Crops - AgriLink{% endblock %}
+
+{% block extra_css %}
+<style>
+  .search-container {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    margin-bottom: 40px;
+  }
+  .search-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto;
+    gap: 20px;
+    align-items: flex-end;
+  }
+  .search-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .search-actions .btn {
+    padding: 14px 22px;
+    font-size: 15px;
+  }
+  .farmer-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(0, 125, 60, 0.9);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    backdrop-filter: blur(5px);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+  <div class="dashboard-header">
+    <div>
+      <h1>Marketplace</h1>
+      <p style="color: #666; margin-top: 5px;">Search, filter and bid on active agricultural listings</p>
+    </div>
+  </div>
+
+  <!-- Search and Filter Form -->
+  <div class="search-container">
+    <form method="GET" action="{% url 'crop_search' %}" class="search-form">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="crop_name">Crop Name</label>
+        <input type="text" name="crop_name" id="crop_name" class="form-input" placeholder="e.g. Paddy, Carrots" value="{{ crop_name }}">
+      </div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="district">District</label>
+        <input type="text" name="district" id="district" class="form-input" placeholder="e.g. Colombo, Galle" value="{{ district }}">
+      </div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="harvest_date">Expected Harvest Date</label>
+        <input type="date" name="harvest_date" id="harvest_date" class="form-input" value="{{ harvest_date }}">
+      </div>
+      <div class="search-actions">
+        <button type="submit" class="btn solid"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+        {% if crop_name or district or harvest_date %}
+          <a href="{% url 'crop_search' %}" class="btn outline" style="text-decoration: none;"><i class="fa-solid fa-rotate-left"></i> Clear</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Crops Results Grid -->
+  <div class="crop-grid">
+    {% for crop in crops %}
+      <div class="crop-card">
+        <div class="crop-img-container">
+          <span class="farmer-badge"><i class="fa-solid fa-user"></i> {{ crop.farmer.username }}</span>
+          {% if crop.crop_image %}
+            <img src="{{ crop.crop_image.url }}" alt="{{ crop.crop_name }}">
+          {% else %}
+            <img src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=600&q=80" alt="Placeholder crop">
+          {% endif %}
+        </div>
+        <div class="crop-details">
+          <h3>{{ crop.crop_name }}</h3>
+          
+          <div class="crop-meta">
+            <div class="crop-meta-item">
+              <span class="label">Quantity</span>
+              <span class="val">{{ crop.quantity }}</span>
+            </div>
+            <div class="crop-meta-item">
+              <span class="label">District</span>
+              <span class="val">{{ crop.district }}</span>
+            </div>
+            <div class="crop-meta-item" style="grid-column: span 2;">
+              <span class="label">Expected Harvest Date</span>
+              <span class="val"><i class="fa-regular fa-calendar-days" style="margin-right: 5px; color: var(--green);"></i> {{ crop.expected_harvest_date|date:"F d, Y" }}</span>
+            </div>
+          </div>
+
+          <div class="crop-card-actions">
+            <a href="{% url 'crop_detail' crop.id %}" class="btn solid" style="text-decoration: none; text-align: center; width: 100%; display: block;"><i class="fa-solid fa-gavel"></i> View & Bid</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="no-crops">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <h3>No Matching Crops Found</h3>
+        <p>Try refining your search terms or checking again later for new listings.</p>
+        {% if crop_name or district or harvest_date %}
+          <a href="{% url 'crop_search' %}" class="btn solid"><i class="fa-solid fa-rotate-left"></i> Reset Filters</a>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

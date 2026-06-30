@@ -1,0 +1,868 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buyer Dashboard - AgriLink</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+    }
+
+    :root {
+      --sidebar-bg: #1a3a2a;
+      --sidebar-dark: #132d20;
+      --sidebar-hover: #234a35;
+      --accent: #2d8653;
+      --accent-light: #e8f5ee;
+      --accent-lighter: #f0faf4;
+      --text-primary: #1a1a2e;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --bg-main: #f5f7f6;
+      --white: #ffffff;
+      --border: #e8ece9;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.08);
+      --radius: 14px;
+      --radius-sm: 10px;
+      --pending-bg: #fef3c7;
+      --pending-text: #92400e;
+      --won-bg: #d1fae5;
+      --won-text: #065f46;
+      --lost-bg: #fee2e2;
+      --lost-text: #991b1b;
+    }
+
+    body {
+      background: var(--bg-main);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* ===== LAYOUT ===== */
+    .app-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 240px;
+      background: var(--sidebar-bg);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-logo {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar-logo h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #4ade80;
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .nav-item:hover {
+      background: var(--sidebar-hover);
+      color: white;
+    }
+
+    .nav-item.active {
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+
+    .nav-item i {
+      width: 20px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .nav-badge {
+      background: #4ade80;
+      color: var(--sidebar-dark);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: auto;
+    }
+
+    .sidebar-footer {
+      padding: 16px 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .user-info h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .user-info p {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 1px;
+    }
+
+    .sidebar-copy {
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      padding: 12px 16px 0;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      flex: 1;
+      margin-left: 240px;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    /* ===== TOP BAR ===== */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 28px 36px 20px;
+    }
+
+    .top-bar-title h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+    }
+
+    .top-bar-title p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .top-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .quick-search {
+      position: relative;
+    }
+
+    .quick-search input {
+      padding: 11px 16px 11px 40px;
+      border: 1.5px solid var(--border);
+      border-radius: 25px;
+      background: var(--white);
+      font-size: 13px;
+      color: var(--text-primary);
+      width: 220px;
+      outline: none;
+      transition: all 0.25s ease;
+      font-family: inherit;
+    }
+
+    .quick-search input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(45, 134, 83, 0.1);
+      width: 260px;
+    }
+
+    .quick-search input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .quick-search i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .notif-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      display: grid;
+      place-items: center;
+      color: var(--text-secondary);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .notif-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .notif-dot {
+      position: absolute;
+      top: 8px;
+      right: 9px;
+      width: 8px;
+      height: 8px;
+      background: #ef4444;
+      border-radius: 50%;
+      border: 2px solid var(--white);
+    }
+
+    /* ===== STATS CARDS ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      padding: 0 36px 28px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      padding: 22px 24px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      transition: all 0.25s ease;
+    }
+
+    .stat-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin: 6px 0 4px;
+      letter-spacing: -1px;
+    }
+
+    .stat-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .stat-sub span {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ===== CONTENT GRID ===== */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 24px;
+      padding: 0 36px 36px;
+    }
+
+    .panel {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 24px 16px;
+    }
+
+    .panel-header h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .panel-action {
+      font-size: 13px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+
+    .panel-action:hover {
+      opacity: 0.7;
+    }
+
+    /* ===== BIDS LIST ===== */
+    .bid-list {
+      padding: 0 24px 24px;
+    }
+
+    .bid-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #f1f5f3;
+    }
+
+    .bid-row:last-child {
+      border-bottom: none;
+    }
+
+    .bid-info h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 3px;
+    }
+
+    .bid-info p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .bid-info p span {
+      margin: 0 6px;
+      color: #cbd5e1;
+    }
+
+    .status-badge {
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+
+    .status-pending {
+      background: var(--pending-bg);
+      color: var(--pending-text);
+    }
+
+    .status-won {
+      background: var(--won-bg);
+      color: var(--won-text);
+    }
+
+    .status-lost {
+      background: var(--lost-bg);
+      color: var(--lost-text);
+    }
+
+    /* ===== SAVED SEARCHES ===== */
+    .saved-tags {
+      padding: 0 24px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .search-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 25px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      background: var(--white);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .search-tag:hover {
+      border-color: var(--accent);
+      background: var(--accent-lighter);
+      color: var(--accent);
+    }
+
+    .delete-tag {
+      color: var(--text-muted);
+      font-size: 10px;
+      transition: color 0.2s;
+    }
+
+    .search-tag:hover .delete-tag {
+      color: #ef4444;
+    }
+
+    /* ===== TRENDING CROPS ===== */
+    .trending-section {
+      padding: 0 24px 24px;
+    }
+
+    .trending-section h3 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+
+    .trending-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .trending-card {
+      background: var(--accent-lighter);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .trending-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+      border-color: var(--accent);
+    }
+
+    .trending-card h5 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .trending-card p {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .trending-card .bid-count {
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state i {
+      font-size: 40px;
+      margin-bottom: 12px;
+      color: #cbd5e1;
+    }
+
+    .empty-state h4 {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .empty-state p {
+      font-size: 13px;
+    }
+
+    .empty-state .btn-sm {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 10px 22px;
+      background: var(--accent);
+      color: white;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .empty-state .btn-sm:hover {
+      background: #24704a;
+      transform: translateY(-1px);
+    }
+
+    /* ===== MESSAGES ===== */
+    .msg-container {
+      padding: 0 36px 16px;
+    }
+
+    .alert {
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .alert-success {
+      background: var(--won-bg);
+      color: var(--won-text);
+    }
+
+    .alert-error {
+      background: var(--lost-bg);
+      color: var(--lost-text);
+    }
+
+    .alert-info {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    /* ===== MOBILE TOGGLE ===== */
+    .mobile-toggle {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 200;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--sidebar-bg);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 99;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .mobile-toggle {
+        display: grid;
+        place-items: center;
+      }
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-overlay.active {
+        display: block;
+      }
+      .main-content {
+        margin-left: 0;
+      }
+      .top-bar {
+        padding: 24px 20px 16px;
+        padding-left: 70px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+      .top-bar-actions {
+        width: 100%;
+      }
+      .quick-search input {
+        width: 100%;
+      }
+      .stats-grid {
+        padding: 0 20px 24px;
+        grid-template-columns: 1fr 1fr;
+      }
+      .content-grid {
+        padding: 0 20px 24px;
+      }
+      .msg-container {
+        padding: 0 20px 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Mobile Toggle -->
+<button class="mobile-toggle" onclick="toggleSidebar()">
+  <i class="fa-solid fa-bars"></i>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="app-layout">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <h2><i class="fa-solid fa-leaf" style="margin-right: 6px;"></i> AgriLink</h2>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{% url 'buyer_dashboard' %}" class="nav-item active">
+        <i class="fa-solid fa-grid-2"></i> Dashboard
+      </a>
+      <a href="{% url 'crop_search' %}" class="nav-item">
+        <i class="fa-solid fa-magnifying-glass"></i> Search Crops
+      </a>
+      <a href="{% url 'buyer_dashboard' %}" class="nav-item">
+        <i class="fa-solid fa-gavel"></i> My Bids
+        {% if active_bids_count %}<span class="nav-badge">{{ active_bids_count }}</span>{% endif %}
+      </a>
+      <a href="{% url 'buyer_dashboard' %}" class="nav-item">
+        <i class="fa-solid fa-bookmark"></i> Saved
+      </a>
+      <a href="{% url 'crop_search' %}" class="nav-item">
+        <i class="fa-solid fa-chart-line"></i> Market Insights
+      </a>
+      <a href="{% url 'farmer_dashboard' %}" class="nav-item">
+        <i class="fa-solid fa-wheat-awn"></i> Farmer Dashboard
+      </a>
+      <a href="{% url 'home' %}" class="nav-item">
+        <i class="fa-solid fa-house"></i> Home
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">{{ user.username|first|upper }}{{ user.username|make_list|last|upper }}</div>
+        <div class="user-info">
+          <h4>{{ user.username }}</h4>
+          <p>Premium Buyer</p>
+        </div>
+      </div>
+      <div class="sidebar-copy">
+        <span>&copy; 2025 AgriLink</span>
+        <span>v2.4.0</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="top-bar-title">
+        <h1>Dashboard</h1>
+        <p>Welcome back, {{ user.username }}. Here's your trading overview.</p>
+      </div>
+      <div class="top-bar-actions">
+        <form class="quick-search" method="GET" action="{% url 'quick_search' %}">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" name="q" placeholder="Quick search crops..." />
+        </form>
+        <div class="notif-btn">
+          <i class="fa-solid fa-bell"></i>
+          {% if active_bids_count %}<span class="notif-dot"></span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="msg-container">
+      {% for message in messages %}
+      <div class="alert alert-{% if message.tags == 'error' %}error{% else %}{{ message.tags }}{% endif %}">
+        <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% elif message.tags == 'error' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Active Bids</div>
+        <div class="stat-value">{{ active_bids_count }}</div>
+        <div class="stat-sub"><span>+{{ active_bids_this_week }}</span> this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Won Bids</div>
+        <div class="stat-value">{{ won_bids_count }}</div>
+        <div class="stat-sub"><span>{{ won_bids_this_month }}</span> this month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Saved Searches</div>
+        <div class="stat-value">{{ saved_searches_count }}</div>
+        <div class="stat-sub"><span>{{ saved_searches_count }}</span> active</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Spent</div>
+        <div class="stat-value">LKR {{ total_spent }}</div>
+        <div class="stat-sub"><span>Won bids</span> total</div>
+      </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+      <!-- Active Bids Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Active Bids</h3>
+          <a href="{% url 'crop_search' %}" class="panel-action">View all</a>
+        </div>
+        <div class="bid-list">
+          {% for bid in recent_bids %}
+          <a href="{% url 'crop_detail' bid.crop.id %}" class="bid-row" style="text-decoration: none; color: inherit;">
+            <div class="bid-info">
+              <h4>{{ bid.crop.crop_name }}</h4>
+              <p>{{ bid.crop.district }} <span>·</span> {{ bid.crop.quantity }} <span>·</span> LKR {{ bid.amount }}</p>
+            </div>
+            <span class="status-badge status-{{ bid.status }}">{{ bid.get_status_display }}</span>
+          </a>
+          {% empty %}
+          <div class="empty-state">
+            <i class="fa-solid fa-gavel"></i>
+            <h4>No Bids Yet</h4>
+            <p>Start exploring the marketplace to place bids.</p>
+            <a href="{% url 'crop_search' %}" class="btn-sm"><i class="fa-solid fa-magnifying-glass"></i> Find Crops</a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div>
+        <!-- Saved Searches Panel -->
+        <div class="panel" style="margin-bottom: 24px;">
+          <div class="panel-header">
+            <h3>Saved Searches</h3>
+            <a href="{% url 'crop_search' %}" class="panel-action">Manage</a>
+          </div>
+          <div class="saved-tags">
+            {% for s in saved_searches %}
+            <a href="/buyer/search/?crop_name={{ s.crop_name }}&district={{ s.district }}" class="search-tag">
+              {{ s }}
+              <form method="POST" action="{% url 'delete_saved_search' s.id %}" style="display:inline;" onsubmit="event.stopPropagation();">
+                {% csrf_token %}
+                <button type="submit" class="delete-tag" style="background:none;border:none;cursor:pointer;padding:0;">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </form>
+            </a>
+            {% empty %}
+            <div class="empty-state" style="padding: 20px 0;">
+              <p>No saved searches. Use the search page to save filters.</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Trending Crops Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Trending Crops</h3>
+          </div>
+          <div class="trending-section">
+            <div class="trending-grid">
+              {% for crop in trending_crops %}
+              <a href="{% url 'crop_detail' crop.id %}" class="trending-card">
+                <h5>{{ crop.crop_name }}</h5>
+                <p>{{ crop.district }}</p>
+                <div class="bid-count"><i class="fa-solid fa-fire"></i> {{ crop.bid_count }} bid{{ crop.bid_count|pluralize }}</div>
+              </a>
+              {% empty %}
+              <div class="empty-state" style="grid-column: span 2; padding: 20px 0;">
+                <p>No crop data available yet.</p>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('active');
+  }
+</script>
+
+</body>
+</html>
