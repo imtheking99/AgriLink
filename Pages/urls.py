@@ -10,4 +10,5 @@ urlpatterns = [
     path('farmer/add/', views.crop_create, name='crop_add'),
     path('farmer/edit/<int:pk>/', views.crop_update, name='crop_edit'),
     path('farmer/delete/<int:pk>/', views.crop_delete, name='crop_delete'),
+    path('buyer/', views.buyer_dashboard, name='buyer_dashboard'),
 ]
