@@ -1,0 +1,19 @@
+<h2>Your Marketplace History</h2>
+
+<h3>My Bids</h3>
+<ul>
+    {% for bid in my_bids %}
+        <li>Bid of LKR {{ bid.bid_amount }} for {{ bid.crop.crop_name }} - <strong>{{ bid.status }}</strong></li>
+    {% empty %}
+        <li>No bids placed yet.</li>
+    {% endfor %}
+</ul>
+
+<h3>Scheduled Appointments</h3>
+<ul>
+    {% for app in my_appointments %}
+        <li>Meeting between {{ app.farmer.username }} (Farmer) & {{ app.buyer.username }} (Buyer) on {{ app.date_time }} <br> Location: {{ app.location_note }}</li>
+    {% empty %}
+        <li>No appointments scheduled yet.</li>
+    {% endfor %}
+</ul>

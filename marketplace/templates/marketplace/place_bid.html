@@ -1,0 +1,8 @@
+<h2>Place a Bid for {{ crop.crop_name }}</h2>
+<p>Farmer: {{ crop.farmer.username }}</p>
+<form method="POST">
+    {% csrf_token %}
+    <label>Your Bid Amount (LKR):</label>
+    <input type="number" step="0.01" name="bid_amount" required>
+    <button type="submit">Submit Bid</button>
+</form>

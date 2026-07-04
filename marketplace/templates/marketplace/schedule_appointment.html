@@ -1,0 +1,12 @@
+<h2>Schedule Appointment</h2>
+<p>Meeting with Buyer: {{ bid.buyer.username }} for Crop: {{ bid.crop.crop_name }}</p>
+<form method="POST">
+    {% csrf_token %}
+    <label>Date & Time:</label>
+    <input type="datetime-local" name="date_time" required><br><br>
+    
+    <label>Location / Note:</label><br>
+    <textarea name="location_note" rows="4" required></textarea><br><br>
+    
+    <button type="submit">Confirm Appointment</button>
+</form>

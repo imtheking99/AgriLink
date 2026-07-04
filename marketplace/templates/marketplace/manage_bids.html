@@ -1,0 +1,32 @@
+<h2>Manage Received Bids</h2>
+<table border="1">
+    <tr>
+        <th>Crop</th>
+        <th>Buyer</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+    {% for bid in bids %}
+    <tr>
+        <td>{{ bid.crop.crop_name }}</td>
+        <td>{{ bid.buyer.username }}</td>
+        <td>{{ bid.bid_amount }}</td>
+        <td>{{ bid.status }}</td>
+        <td>
+            {% if bid.status == 'Pending' %}
+            <form method="POST" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="bid_id" value="{{ bid.id }}">
+                <button type="submit" name="action" value="accept">Accept</button>
+                <button type="submit" name="action" value="reject">Reject</button>
+            </form>
+            {% else %}
+            Done
+            {% endif %}
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">No bids received yet.</td></tr>
+    {% endfor %}
+</table>
