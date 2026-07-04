@@ -19,24 +19,10 @@
     <form method="POST">
       {% csrf_token %}
 
-      <div class="form-group">
-        <label>Register As</label>
-        <div class="radio-group">
-          <label>
-            <input type="radio" name="user_type" value="farmer" checked>
-            Farmer
-          </label>
-
-          <label>
-            <input type="radio" name="user_type" value="buyer">
-            Buyer
-          </label>
-        </div>
-      </div>
-
       {% for field in form %}
-      <div class="form-group">
+      <div class="form-group field-{{ field.name }}">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
         {{ field }}
 
         {% if field.help_text %}
@@ -44,45 +30,10 @@
         {% endif %}
 
         {% if field.errors %}
-        <span style="color: #dc2626; font-size: 13px;">{{ field.errors.0 }}</span>
+        <span style="color:#dc2626; font-size:13px;">{{ field.errors.0 }}</span>
         {% endif %}
       </div>
       {% endfor %}
-
-      <div class="form-group">
-        <label for="phone">Phone Number</label>
-        <input type="text" name="phone" id="phone" placeholder="Enter phone number" required>
-      </div>
-
-      <div class="form-group">
-        <label for="district">District</label>
-        <input type="text" name="district" id="district" placeholder="Enter district" required>
-      </div>
-
-      <div class="form-group">
-        <label for="address">Address</label>
-        <textarea name="address" id="address" rows="3" placeholder="Enter address" required></textarea>
-      </div>
-
-      <div class="form-group farmer-field">
-        <label for="farm_size">Farm Size</label>
-        <input type="text" name="farm_size" id="farm_size" placeholder="Example: 2 acres">
-      </div>
-
-      <div class="form-group farmer-field">
-        <label for="main_crop">Main Crop</label>
-        <input type="text" name="main_crop" id="main_crop" placeholder="Example: Paddy, Vegetables">
-      </div>
-
-      <div class="form-group buyer-field" style="display:none;">
-        <label for="business_name">Business Name</label>
-        <input type="text" name="business_name" id="business_name" placeholder="Enter business name">
-      </div>
-
-      <div class="form-group buyer-field" style="display:none;">
-        <label for="buying_interest">Buying Interest</label>
-        <input type="text" name="buying_interest" id="buying_interest" placeholder="Example: Rice, Vegetables, Fruits">
-      </div>
 
       <div class="form-actions">
         <button type="submit" class="btn solid">Register</button>
@@ -97,18 +48,38 @@
 
 <script>
   const userTypeRadios = document.querySelectorAll('input[name="user_type"]');
-  const farmerFields = document.querySelectorAll('.farmer-field');
-  const buyerFields = document.querySelectorAll('.buyer-field');
+
+  const farmerFields = [
+    document.querySelector('.field-farm_size'),
+    document.querySelector('.field-main_crop')
+  ];
+
+  const buyerFields = [
+    document.querySelector('.field-business_name'),
+    document.querySelector('.field-buying_interest')
+  ];
 
   function toggleFields() {
-    const selectedType = document.querySelector('input[name="user_type"]:checked').value;
+    const selected = document.querySelector('input[name="user_type"]:checked');
 
-    if (selectedType === 'farmer') {
-      farmerFields.forEach(field => field.style.display = 'block');
-      buyerFields.forEach(field => field.style.display = 'none');
+    if (!selected) return;
+
+    if (selected.value === 'farmer') {
+      farmerFields.forEach(field => {
+        if (field) field.style.display = 'flex';
+      });
+
+      buyerFields.forEach(field => {
+        if (field) field.style.display = 'none';
+      });
     } else {
-      farmerFields.forEach(field => field.style.display = 'none');
-      buyerFields.forEach(field => field.style.display = 'block');
+      farmerFields.forEach(field => {
+        if (field) field.style.display = 'none';
+      });
+
+      buyerFields.forEach(field => {
+        if (field) field.style.display = 'flex';
+      });
     }
   }
 
