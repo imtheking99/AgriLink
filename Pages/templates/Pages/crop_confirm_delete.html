@@ -18,7 +18,7 @@
     <form method="POST">
       {% csrf_token %}
       <div class="form-actions">
-        <a href="{% url 'home' %}" class="btn outline" style="text-decoration: none; text-align: center;">Cancel</a>
+        <a href="{% url 'farmer_dashboard' %}" class="btn outline" style="text-decoration: none; text-align: center;">Cancel</a>
         <button type="submit" class="btn delete" style="padding: 13px 25px; font-weight: 800; font-size: 16px; border-radius: 12px; cursor: pointer; flex: 1;"><i class="fa-solid fa-trash-can"></i> Confirm Delete</button>
       </div>
     </form>

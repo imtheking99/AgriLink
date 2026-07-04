@@ -29,9 +29,9 @@ class CropAccessControlTests(TestCase):
         )
 
     def test_anonymous_redirect(self):
-        """Verify that anonymous users are redirected to login when accessing CRUD urls and that the old dashboard URL is gone."""
-        response = self.client.get('/farmer/')
-        self.assertEqual(response.status_code, 404)
+        """Verify that anonymous users are redirected to login when accessing dashboard or CRUD urls."""
+        response = self.client.get(reverse('farmer_dashboard'))
+        self.assertRedirects(response, '/login/?next=/farmer/')
         
         response = self.client.get(reverse('crop_add'))
         self.assertRedirects(response, '/login/?next=/farmer/add/')
@@ -40,13 +40,15 @@ class CropAccessControlTests(TestCase):
         self.assertRedirects(response, f'/login/?next=/farmer/edit/{self.crop_a.id}/')
 
     def test_owner_can_view_and_manage(self):
-        """Verify that a farmer is redirected away from the removed dashboard and can still manage crops."""
+        """Verify that a farmer can view and manage their own crops."""
         # Log in as farmer_a
         self.client.login(username='farmer_a', password='password123')
         
-        # Verify the old dashboard URL no longer exists
-        response = self.client.get('/farmer/')
-        self.assertEqual(response.status_code, 404)
+        # Verify dashboard shows the crop
+        response = self.client.get(reverse('farmer_dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Paddy')
+        self.assertContains(response, '1000 kg')
         
         # Verify can edit crop
         edit_url = reverse('crop_edit', args=[self.crop_a.id])
@@ -58,7 +60,7 @@ class CropAccessControlTests(TestCase):
             # Leaving image blank since we want to check if it keeps the original image
         }
         response = self.client.post(edit_url, edit_data)
-        self.assertRedirects(response, reverse('home'))
+        self.assertRedirects(response, reverse('farmer_dashboard'))
         self.crop_a.refresh_from_db()
         self.assertEqual(self.crop_a.crop_name, 'Paddy Updated')
         self.assertEqual(self.crop_a.quantity, '1200 kg')
@@ -68,9 +70,10 @@ class CropAccessControlTests(TestCase):
         # Log in as farmer_b
         self.client.login(username='farmer_b', password='password123')
         
-        # Verify the old dashboard URL no longer exists
-        response = self.client.get('/farmer/')
-        self.assertEqual(response.status_code, 404)
+        # Verify farmer_b's dashboard does NOT show farmer_a's crop
+        response = self.client.get(reverse('farmer_dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'Paddy')
         
         # Verify farmer_b cannot edit farmer_a's crop
         edit_url = reverse('crop_edit', args=[self.crop_a.id])
@@ -81,7 +84,7 @@ class CropAccessControlTests(TestCase):
             'expected_harvest_date': '2026-08-20',
         }
         response = self.client.post(edit_url, edit_data)
-        self.assertRedirects(response, reverse('home'))
+        self.assertRedirects(response, reverse('farmer_dashboard'))
         
         # Check database remains unchanged
         self.crop_a.refresh_from_db()
@@ -90,5 +93,5 @@ class CropAccessControlTests(TestCase):
         # Verify farmer_b cannot delete farmer_a's crop
         delete_url = reverse('crop_delete', args=[self.crop_a.id])
         response = self.client.post(delete_url)
-        self.assertRedirects(response, reverse('home'))
+        self.assertRedirects(response, reverse('farmer_dashboard'))
         self.assertTrue(Crop.objects.filter(id=self.crop_a.id).exists())
