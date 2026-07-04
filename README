@@ -1,0 +1,7 @@
+run the codes in the terminal.
+
+python -m venv venv
+.\venv\Scripts\pip install django Pillow pymysql
+$env:USE_MYSQL="False"
+.\venv\Scripts\python manage.py migrate
+.\venv\Scripts\python manage.py runserver
