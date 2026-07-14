@@ -5,6 +5,14 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from .models import Crop
 from .forms import CropForm, FarmerRegistrationForm, FarmerLoginForm
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.models import User
+from .models import Crop, WeatherAlert, RecentActivity
+import pandas as pd
+from django.http import HttpResponse
 
 # Landing Page View
 def home_view(request):
@@ -111,3 +119,47 @@ def crop_delete(request, pk):
         messages.success(request, f"Crop '{crop_name}' deleted successfully.")
         return redirect('farmer_dashboard')
     return render(request, 'Pages/crop_confirm_delete.html', {'crop': crop})
+
+
+#Login view
+def login_view(request):
+    if request.method == 'POST':
+        if user is not None:
+            login(request, user)
+            
+            # Check for admin
+            if user.is_superuser:
+                return redirect('admin_dashboard')  # To Admin Dashboard
+            else:
+                return redirect('home')  #To Home
+    
+    return render(request, 'Pages/login.html')
+
+#Admin
+#@user_passes_test(lambda u: u.is_superuser)
+def admin_dashboard(request):
+    total_users = User.objects.count()
+    active_crops = Crop.objects.filter(status='Active').count()
+    active_weather = WeatherAlert.objects.filter(is_active=True).count()
+    recent_actions = RecentActivity.objects.all().order_by('-created_at')[:5]
+    
+    context = {
+        'total_users': total_users,
+        'active_crops': active_crops,
+        'active_weather': active_weather,
+        'recent_actions': recent_actions,
+    }
+    return render(request, 'Pages/admin_panel.html', context)
+
+    #export report
+def export_crops_report(request):
+    
+    crops = Crop.objects.all().values('crop_name', 'quantity', 'district', 'expected_harvest_date')
+    df = pd.DataFrame(list(crops))
+    
+    
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="AgriLink_Report.xlsx"'
+    
+    df.to_excel(response, index=False)
+    return response

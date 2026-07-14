@@ -62,9 +62,16 @@
 
   <nav class="nav-links" id="navLinks">
     <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+    
     {% if user.is_authenticated %}
-      <a href="{% url 'farmer_dashboard' %}" class="{% if 'farmer' in request.path %}active{% endif %}">Farmer Dashboard</a>
+      {% if user.is_superuser %}
+            <!-- Admin Link-->
+            <a href="{% url 'admin_dashboard' %}" class="{% if 'admin' in request.path %}active{% endif %}">Admin Dashboard</a>
+      {% else %}
+            <a href="{% url 'farmer_dashboard' %}" class="{% if 'farmer' in request.path %}active{% endif %}">Farmer Dashboard</a>
+      {% endif %}
     {% endif %}
+    
     <a href="{% url 'home' %}#about">About Us</a>
     <a href="{% url 'home' %}#features">Features</a>
     <a href="{% url 'home' %}#prices">Market Prices</a>
@@ -98,6 +105,7 @@
 
 {% block content %}
 {% endblock %}
+
 
 <footer>
   <div class="footer-grid">
