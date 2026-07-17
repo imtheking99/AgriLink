@@ -11,6 +11,14 @@ class Crop(models.Model):
     crop_image = models.ImageField(upload_to='crops/')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    crop_status = models.CharField(
+    max_length=20,
+    choices=[
+        ('available', 'Available'),
+        ('sold', 'Sold'),
+    ],
+    default='available'
+)
 
     def __str__(self):
         return f"{self.crop_name} - {self.quantity} ({self.farmer.username})"
@@ -35,3 +43,57 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} ({self.user_type})"
+    
+class Bid(models.Model):
+    crop = models.ForeignKey(
+        Crop,
+        on_delete=models.CASCADE,
+        related_name="bids"
+    )
+
+    buyer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="bids"
+    )
+
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    bid_date = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    accepted = models.BooleanField(
+        default=False
+    )
+
+    class Meta:
+        ordering = ['-amount']
+
+    def __str__(self):
+        return f"{self.buyer.username} - Rs.{self.amount} for {self.crop.crop_name}"
+    
+    #Notification model to notify farmers about new bids
+    
+class Notification(models.Model):
+        user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="notifications"
+    )
+
+        message = models.CharField(max_length=255)
+
+        is_read = models.BooleanField(
+        default=False
+    )
+
+        created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+        def __str__(self):
+            return f"{self.user.username} - {self.message}"

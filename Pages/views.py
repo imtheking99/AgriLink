@@ -1,9 +1,11 @@
+from urllib import request
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from .models import Crop
+from .models import Crop, Bid, Notification
 from .forms import CropForm, RegistrationForm, FarmerLoginForm
 
 
@@ -85,7 +87,9 @@ def buyer_dashboard(request):
     if request.user.userprofile.user_type != 'buyer':
         return redirect('farmer_dashboard')
 
-    crops = Crop.objects.all().order_by('-created_at')
+    crops = Crop.objects.filter(
+    crop_status='available'
+    ).order_by('-created_at')
     return render(request, 'Pages/buyer_dashboard.html', {'crops': crops})
 
 
@@ -155,3 +159,146 @@ def crop_delete(request, pk):
         return redirect('farmer_dashboard')
 
     return render(request, 'Pages/crop_confirm_delete.html', {'crop': crop})
+
+@login_required
+def bidding_page(request):
+
+    if request.user.userprofile.user_type != 'buyer':
+        return redirect('farmer_dashboard')
+
+    crops = Crop.objects.filter(
+    crop_status='available'
+    ).order_by('-created_at')
+
+
+    if request.method == "POST":
+
+        crop_id = request.POST.get('crop_id')
+        amount = request.POST.get('amount')
+
+        crop = get_object_or_404(
+        Crop,
+        id=crop_id,
+        crop_status='available'
+)
+
+
+        Bid.objects.create(
+            crop=crop,
+            buyer=request.user,
+            amount=amount
+        )
+
+
+        # Notify farmer
+        Notification.objects.create(
+            user=crop.farmer,
+            message=f"{request.user.username} placed a bid of Rs.{amount} for your {crop.crop_name}"
+        )
+
+
+        messages.success(
+            request,
+            "Your bid has been placed successfully!"
+        )
+
+
+        return redirect('bidding_page')
+
+
+    return render(
+        request,
+        'Pages/bidding.html',
+        {
+            'crops': crops
+        }
+    )
+
+@login_required
+def farmer_bids(request):
+
+    if request.user.userprofile.user_type != 'farmer':
+        return redirect('buyer_dashboard')
+
+    crops = Crop.objects.filter(
+        farmer=request.user
+    )
+
+    bids = Bid.objects.filter(
+        crop__in=crops,
+        accepted=False
+        ).order_by('-amount')
+
+
+    return render(
+        request,
+        'Pages/farmer_bids.html',
+        {
+            'bids': bids
+        }
+    )
+
+@login_required
+def accept_bid(request, bid_id):
+
+    if request.user.userprofile.user_type != 'farmer':
+        return redirect('buyer_dashboard')
+
+    bid = get_object_or_404(Bid, id=bid_id)
+
+    # Make sure this farmer owns this crop
+    if bid.crop.farmer != request.user:
+        messages.error(request, "You cannot accept this bid.")
+        return redirect('farmer_bids')
+
+
+    # Accept selected bid
+    bid.accepted = True
+    bid.save()
+
+    # Mark crop as sold
+    bid.crop.crop_status = 'sold'
+    bid.crop.save()
+
+     # Optional: Reject other bids for the same crop
+    Bid.objects.filter(
+        crop=bid.crop
+    ).exclude(
+        id=bid.id
+    ).update(
+        accepted=False
+    )
+
+    # Notify buyer
+    Notification.objects.create(
+        user=bid.buyer,
+        message=f"Your bid for {bid.crop.crop_name} has been accepted by {request.user.username}"
+)
+    messages.success(
+        request,
+        f"Bid from {bid.buyer.username} accepted successfully!"
+    )
+
+
+    return redirect('farmer_bids')
+
+@login_required
+def farmer_deals(request):
+
+    if request.user.userprofile.user_type != 'farmer':
+        return redirect('buyer_dashboard')
+
+
+    deals = Bid.objects.filter(
+        crop__farmer=request.user,
+        accepted=True
+    ).order_by('-bid_date')
+
+
+    return render(
+        request,
+        'Pages/farmer_deals.html',
+        {
+            'deals': deals
+        }
+    )

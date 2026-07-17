@@ -11,4 +11,9 @@ urlpatterns = [
     path('farmer/edit/<int:pk>/', views.crop_update, name='crop_edit'),
     path('farmer/delete/<int:pk>/', views.crop_delete, name='crop_delete'),
     path('buyer/', views.buyer_dashboard, name='buyer_dashboard'),
+    path('bidding/', views.bidding_page, name='bidding_page'),
+    path('farmer/bids/', views.farmer_bids,name='farmer_bids'),
+    path('farmer/bids/accept/<int:bid_id>/', views.accept_bid,name='accept_bid'),
+    path('farmer/deals/', views.farmer_deals,name='farmer_deals'),
 ]
+

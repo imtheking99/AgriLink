@@ -1,0 +1,116 @@
+{% extends 'Pages/base.html' %}
+
+
+{% block title %}
+Accepted Deals - AgriLink
+{% endblock %}
+
+
+{% block content %}
+
+
+<section class="marketplace">
+
+
+<div class="page-header">
+
+<h1>🤝 Accepted Deals</h1>
+
+<p>
+Your successfully accepted crop deals.
+</p>
+
+</div>
+
+
+
+{% if deals %}
+
+
+<div class="crop-grid">
+
+
+{% for deal in deals %}
+
+
+<div class="crop-card">
+
+
+<div class="crop-details">
+
+
+<h2>
+{{ deal.crop.crop_name }}
+</h2>
+
+
+<p>
+<strong>Buyer:</strong>
+{{ deal.buyer.username }}
+</p>
+
+
+<p>
+<strong>Accepted Price:</strong>
+Rs. {{ deal.amount }}
+</p>
+
+
+<p>
+<strong>Quantity:</strong>
+{{ deal.crop.quantity }}
+</p>
+
+
+<p>
+<strong>District:</strong>
+{{ deal.crop.district }}
+</p>
+
+
+<p>
+<strong>Date:</strong>
+{{ deal.bid_date }}
+</p>
+
+
+<div class="status available">
+
+✅ Deal Completed
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+{% endfor %}
+
+
+</div>
+
+
+{% else %}
+
+
+<div class="empty-state">
+
+<h2>No Accepted Deals</h2>
+
+<p>
+You have not accepted any bids yet.
+</p>
+
+</div>
+
+
+{% endif %}
+
+
+</section>
+
+
+{% endblock %}
