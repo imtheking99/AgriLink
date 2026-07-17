@@ -12,7 +12,9 @@ urlpatterns = [
     path('farmer/add/', views.crop_create, name='crop_add'),
     path('farmer/edit/<int:pk>/', views.crop_update, name='crop_edit'),
     path('farmer/delete/<int:pk>/', views.crop_delete, name='crop_delete'),
-    path('weather/', include (('weather.urls', 'weather'), namespace='weather')),
+    path('weather/', include(([
+        path('', views.weather_index, name='index'),
+    ], 'weather'), namespace='weather')),
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin/export/', views.export_crops_report, name='export_reports'),
     path('buyer/', views.buyer_dashboard, name='buyer_dashboard'),

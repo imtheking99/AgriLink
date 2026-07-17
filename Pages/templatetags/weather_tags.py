@@ -3,7 +3,7 @@ import requests
 
 register = template.Library()
 
-@register.inclusion_tag('weather/weather_partial.html') # ඔබේ template එක තියෙන තැන
+@register.inclusion_tag('weather/weather_partial.html')
 def show_weather():
     city = 'Colombo'
     api_key = '1e74f142f97c2bdc20efeb4a44461208'

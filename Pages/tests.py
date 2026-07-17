@@ -4,13 +4,15 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import date
 from unittest.mock import Mock, patch
-from .models import Crop
+from .models import Crop, UserProfile
 
 class CropAccessControlTests(TestCase):
     def setUp(self):
         # Create two test users
         self.farmer_a = User.objects.create_user(username='farmer_a', password='password123')
+        UserProfile.objects.create(user=self.farmer_a, user_type='farmer', phone='12345', district='Galle')
         self.farmer_b = User.objects.create_user(username='farmer_b', password='password123')
+        UserProfile.objects.create(user=self.farmer_b, user_type='farmer', phone='67890', district='Colombo')
         
         # Create a small dummy image for testing file uploads
         self.dummy_image = SimpleUploadedFile(
@@ -113,4 +115,4 @@ class CropAccessControlTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Weather for Galle')
-        self.assertContains(response, 'few clouds')
+        self.assertContains(response, 'Few clouds')

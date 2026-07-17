@@ -1,23 +1,14 @@
-from urllib import request
-
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from .models import Crop
-from .forms import CropForm, FarmerRegistrationForm, FarmerLoginForm
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.models import User
-from .models import Crop, WeatherAlert, RecentActivity
-import pandas as pd
 from django.http import HttpResponse
+import pandas as pd
 import requests
 
-from .models import Crop, Bid, Notification
+from .models import Crop, WeatherAlert, RecentActivity, Bid, Notification
 from .forms import CropForm, RegistrationForm, FarmerLoginForm
 
 
@@ -27,7 +18,9 @@ def home_view(request):
 
 def register_view(request):
     if request.user.is_authenticated:
-        if request.user.userprofile.user_type == 'buyer':
+        if request.user.is_superuser:
+            return redirect('admin_dashboard')
+        if hasattr(request.user, 'userprofile') and request.user.userprofile.user_type == 'buyer':
             return redirect('buyer_dashboard')
         return redirect('farmer_dashboard')
 
@@ -38,7 +31,7 @@ def register_view(request):
             user = form.save()
             login(request, user)
 
-            if user.userprofile.user_type == 'buyer':
+            if hasattr(user, 'userprofile') and user.userprofile.user_type == 'buyer':
                 messages.success(request, f"Welcome to AgriLink, {user.username}! Your buyer account has been created.")
                 return redirect('buyer_dashboard')
             else:
@@ -54,7 +47,9 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        if request.user.userprofile.user_type == 'buyer':
+        if request.user.is_superuser:
+            return redirect('admin_dashboard')
+        if hasattr(request.user, 'userprofile') and request.user.userprofile.user_type == 'buyer':
             return redirect('buyer_dashboard')
         return redirect('farmer_dashboard')
 
@@ -65,7 +60,10 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
 
-            if user.userprofile.user_type == 'buyer':
+            if user.is_superuser:
+                messages.success(request, f"Welcome back, Admin {user.username}!")
+                return redirect('admin_dashboard')
+            elif hasattr(user, 'userprofile') and user.userprofile.user_type == 'buyer':
                 messages.success(request, f"Welcome back, {user.username}!")
                 return redirect('buyer_dashboard')
             else:
@@ -87,6 +85,10 @@ def logout_view(request):
 
 @login_required
 def farmer_dashboard(request):
+    if request.user.is_superuser:
+        return redirect('admin_dashboard')
+    if not hasattr(request.user, 'userprofile'):
+        return redirect('home')
     if request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
@@ -113,6 +115,10 @@ def farmer_dashboard(request):
 
 @login_required
 def buyer_dashboard(request):
+    if request.user.is_superuser:
+        return redirect('admin_dashboard')
+    if not hasattr(request.user, 'userprofile'):
+        return redirect('home')
     if request.user.userprofile.user_type != 'buyer':
         return redirect('farmer_dashboard')
 
@@ -124,7 +130,7 @@ def buyer_dashboard(request):
 
 @login_required
 def crop_create(request):
-    if request.user.userprofile.user_type != 'farmer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
     if request.method == 'POST':
@@ -148,7 +154,7 @@ def crop_create(request):
 def crop_update(request, pk):
     crop = get_object_or_404(Crop, pk=pk)
 
-    if request.user.userprofile.user_type != 'farmer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
     if crop.farmer != request.user:
@@ -174,7 +180,7 @@ def crop_update(request, pk):
 def crop_delete(request, pk):
     crop = get_object_or_404(Crop, pk=pk)
 
-    if request.user.userprofile.user_type != 'farmer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
     if crop.farmer != request.user:
@@ -190,19 +196,41 @@ def crop_delete(request, pk):
     return render(request, 'Pages/crop_confirm_delete.html', {'crop': crop})
 
 
-#Login view
-def login_view(request):
-    if request.method == 'POST':
-        if user is not None:
-            login(request, user)
-            
-            # Check for admin
-            if user.is_superuser:
-                return redirect('admin_dashboard')  # To Admin Dashboard
-            else:
-                return redirect('home')  #To Home
+def weather_index(request):
+    city = request.GET.get('city', 'Colombo')
+    api_key = '1e74f142f97c2bdc20efeb4a44461208'
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+    context = {'city': city}
     
-    return render(request, 'Pages/login.html')
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            context['weather'] = data
+            desc = data['weather'][0]['description'].lower()
+            
+            # Decide class and icon
+            if 'clear' in desc:
+                context['condition_class'] = 'sunny'
+                context['weather_icon'] = 'fa-sun'
+            elif any(w in desc for w in ['rain', 'drizzle', 'storm']):
+                context['condition_class'] = 'rainy'
+                context['weather_icon'] = 'fa-cloud-showers-heavy'
+            else:
+                context['condition_class'] = 'cloudy'
+                context['weather_icon'] = 'fa-cloud'
+            
+            # Alerts Logic
+            if data['main']['temp'] > 30:
+                context['alerts'] = ["High heat alert! Protect your crops."]
+            elif 'rain' in desc:
+                context['alerts'] = ["Rain expected! Ensure proper drainage."]
+        else:
+            context['error'] = 'City not found!'
+    except:
+        context['error'] = 'Service unavailable!'
+        
+    return render(request, 'weather/weather.html', context)
 
 #Admin
 #@user_passes_test(lambda u: u.is_superuser)
@@ -235,7 +263,7 @@ def export_crops_report(request):
 @login_required
 def bidding_page(request):
 
-    if request.user.userprofile.user_type != 'buyer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'buyer':
         return redirect('farmer_dashboard')
 
     crops = Crop.objects.filter(
@@ -289,7 +317,7 @@ def bidding_page(request):
 @login_required
 def farmer_bids(request):
 
-    if request.user.userprofile.user_type != 'farmer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
     crops = Crop.objects.filter(
@@ -313,7 +341,7 @@ def farmer_bids(request):
 @login_required
 def accept_bid(request, bid_id):
 
-    if request.user.userprofile.user_type != 'farmer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
     bid = get_object_or_404(Bid, id=bid_id)
@@ -357,7 +385,7 @@ def accept_bid(request, bid_id):
 @login_required
 def farmer_deals(request):
 
-    if request.user.userprofile.user_type != 'farmer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
 

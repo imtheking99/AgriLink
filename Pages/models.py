@@ -12,6 +12,14 @@ class Crop(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=20, default='Active')
+    crop_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('available', 'Available'),
+            ('sold', 'Sold'),
+        ],
+        default='available'
+    )
 
     def __str__(self):
         return f"{self.crop_name} - {self.quantity} ({self.farmer.username})"
@@ -26,17 +34,8 @@ class RecentActivity(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    crop_status = models.CharField(
-    max_length=20,
-    choices=[
-        ('available', 'Available'),
-        ('sold', 'Sold'),
-    ],
-    default='available'
-)
-
     def __str__(self):
-        return f"{self.crop_name} - {self.quantity} ({self.farmer.username})"
+        return self.description
 class UserProfile(models.Model):
     USER_TYPES = (
         ('farmer', 'Farmer'),
