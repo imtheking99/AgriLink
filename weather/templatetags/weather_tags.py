@@ -1,8 +1,11 @@
-from django.shortcuts import render
+from django import template
 import requests
 
-def index(request):
-    city = request.GET.get('city', 'Colombo')
+register = template.Library()
+
+@register.inclusion_tag('weather/weather_partial.html') # ඔබේ template එක තියෙන තැන
+def show_weather():
+    city = 'Colombo'
     api_key = '1e74f142f97c2bdc20efeb4a44461208'
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
     context = {'city': city}
@@ -14,7 +17,6 @@ def index(request):
             context['weather'] = data
             desc = data['weather'][0]['description'].lower()
             
-            # Decide class and icon
             if 'clear' in desc:
                 context['condition_class'] = 'sunny'
                 context['weather_icon'] = 'fa-sun'
@@ -25,7 +27,6 @@ def index(request):
                 context['condition_class'] = 'cloudy'
                 context['weather_icon'] = 'fa-cloud'
             
-            # Alerts Logic
             if data['main']['temp'] > 30:
                 context['alerts'] = ["High heat alert! Protect your crops."]
             elif 'rain' in desc:
@@ -35,4 +36,4 @@ def index(request):
     except:
         context['error'] = 'Service unavailable!'
         
-    return render(request, 'weather/weather.html', context)
+    return context

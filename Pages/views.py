@@ -13,6 +13,7 @@ from django.contrib.auth.models import User
 from .models import Crop, WeatherAlert, RecentActivity
 import pandas as pd
 from django.http import HttpResponse
+import requests
 
 # Landing Page View
 def home_view(request):
@@ -62,7 +63,24 @@ def logout_view(request):
 @login_required
 def farmer_dashboard(request):
     crops = Crop.objects.filter(farmer=request.user).order_by('-created_at')
-    return render(request, 'Pages/farmer_dashboard.html', {'crops': crops})
+    weather_city = crops.first().district if crops.exists() else 'Colombo'
+    weather_context = {'weather_city': weather_city}
+
+    try:
+        response = requests.get(
+            f"http://api.openweathermap.org/data/2.5/weather?q={weather_city}&appid=1e74f142f97c2bdc20efeb4a44461208&units=metric",
+            timeout=5,
+        )
+        if response.status_code == 200:
+            data = response.json()
+            weather_context['weather_data'] = data
+            weather_context['weather_description'] = data['weather'][0]['description']
+        else:
+            weather_context['weather_error'] = 'Weather service unavailable.'
+    except requests.RequestException:
+        weather_context['weather_error'] = 'Weather service unavailable.'
+
+    return render(request, 'Pages/farmer_dashboard.html', {'crops': crops, **weather_context})
 
 # Crop Registration - Add a crop
 @login_required

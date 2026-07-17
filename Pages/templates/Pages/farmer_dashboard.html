@@ -1,6 +1,6 @@
 {% extends 'Pages/base.html' %}
 {% load static %}
-
+{% load weather_tags %}
 {% block title %}Farmer Dashboard - AgriLink{% endblock %}
 
 {% block content %}
@@ -11,6 +11,21 @@
       <p style="color: #666; margin-top: 5px;">Manage and monitor your crop listings</p>
     </div>
     <a href="{% url 'crop_add' %}" class="btn solid"><i class="fa-solid fa-plus"></i> Register New Crop</a>
+  </div>
+
+  <div class="weather-panel" style="margin-bottom: 25px; background: linear-gradient(135deg, #1f7a1f, #2e8b57); color: white; border-radius: 18px; padding: 20px 24px; box-shadow: 0 12px 30px rgba(0,0,0,0.12);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h3 style="margin: 0 0 6px; font-size: 1.2rem;">Weather for {{ weather_city }}</h3>
+        {% if weather_data %}
+          <p style="margin: 0; font-size: 1.05rem;">{{ weather_data.main.temp|floatformat:0 }}°C · {{ weather_description|capfirst }}</p>
+          <p style="margin: 6px 0 0; opacity: 0.9;">Humidity {{ weather_data.main.humidity }}% · {{ weather_data.weather.0.main }}</p>
+        {% else %}
+          <p style="margin: 0; opacity: 0.9;">{{ weather_error|default:"Weather details will appear here." }}</p>
+        {% endif %}
+      </div>
+      <a href="{% url 'weather:index' %}?city={{ weather_city }}" class="btn solid" style="background: white; color: #1f7a1f; border: none;">Open full weather view</a>
+    </div>
   </div>
 
   <div class="crop-grid">
