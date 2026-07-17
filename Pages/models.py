@@ -35,3 +35,30 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} ({self.user_type})"
+    
+class Bid(models.Model):
+    crop = models.ForeignKey(
+        Crop,
+        on_delete=models.CASCADE,
+        related_name="bids"
+    )
+
+    buyer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    bid_date = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ['-amount']
+
+    def __str__(self):
+        return f"{self.buyer.username} - Rs.{self.amount} for {self.crop.crop_name}"

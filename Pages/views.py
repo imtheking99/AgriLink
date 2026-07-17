@@ -155,3 +155,5 @@ def crop_delete(request, pk):
         return redirect('farmer_dashboard')
 
     return render(request, 'Pages/crop_confirm_delete.html', {'crop': crop})
+def bidding_page(request):
+    return render(request, 'Pages/bidding.html')
