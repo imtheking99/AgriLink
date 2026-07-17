@@ -87,7 +87,9 @@ def buyer_dashboard(request):
     if request.user.userprofile.user_type != 'buyer':
         return redirect('farmer_dashboard')
 
-    crops = Crop.objects.all().order_by('-created_at')
+    crops = Crop.objects.filter(
+    crop_status='available'
+    ).order_by('-created_at')
     return render(request, 'Pages/buyer_dashboard.html', {'crops': crops})
 
 
@@ -164,36 +166,52 @@ def bidding_page(request):
     if request.user.userprofile.user_type != 'buyer':
         return redirect('farmer_dashboard')
 
-    crops = Crop.objects.all().order_by('-created_at')
+    crops = Crop.objects.filter(
+    crop_status='available'
+    ).order_by('-created_at')
+
 
     if request.method == "POST":
 
         crop_id = request.POST.get('crop_id')
         amount = request.POST.get('amount')
 
-        crop = get_object_or_404(Crop, id=crop_id)
-
-    bid = Bid.objects.create(
-    crop=crop,
-    buyer=request.user,
-    amount=amount
+        crop = get_object_or_404(
+        Crop,
+        id=crop_id,
+        crop_status='available'
 )
 
 
-# Notify farmer
-    Notification.objects.create(
-    user=crop.farmer,
-    message=f"{request.user.username} placed a bid of Rs.{amount} for your {crop.crop_name}"
-)
+        Bid.objects.create(
+            crop=crop,
+            buyer=request.user,
+            amount=amount
+        )
 
 
-    messages.success(request, "Your bid has been placed successfully!")
+        # Notify farmer
+        Notification.objects.create(
+            user=crop.farmer,
+            message=f"{request.user.username} placed a bid of Rs.{amount} for your {crop.crop_name}"
+        )
+
+
+        messages.success(
+            request,
+            "Your bid has been placed successfully!"
+        )
+
+
+        return redirect('bidding_page')
 
 
     return render(
         request,
         'Pages/bidding.html',
-        {'crops': crops}
+        {
+            'crops': crops
+        }
     )
 
 @login_required
@@ -238,8 +256,11 @@ def accept_bid(request, bid_id):
     bid.accepted = True
     bid.save()
 
+    # Mark crop as sold
+    bid.crop.crop_status = 'sold'
+    bid.crop.save()
 
-    # Optional: Reject other bids for the same crop
+     # Optional: Reject other bids for the same crop
     Bid.objects.filter(
         crop=bid.crop
     ).exclude(
@@ -248,7 +269,11 @@ def accept_bid(request, bid_id):
         accepted=False
     )
 
-
+    # Notify buyer
+    Notification.objects.create(
+        user=bid.buyer,
+        message=f"Your bid for {bid.crop.crop_name} has been accepted by {request.user.username}"
+)
     messages.success(
         request,
         f"Bid from {bid.buyer.username} accepted successfully!"

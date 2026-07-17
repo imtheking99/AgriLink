@@ -11,6 +11,14 @@ class Crop(models.Model):
     crop_image = models.ImageField(upload_to='crops/')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    crop_status = models.CharField(
+    max_length=20,
+    choices=[
+        ('available', 'Available'),
+        ('sold', 'Sold'),
+    ],
+    default='available'
+)
 
     def __str__(self):
         return f"{self.crop_name} - {self.quantity} ({self.farmer.username})"
