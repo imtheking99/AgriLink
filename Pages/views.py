@@ -1,9 +1,11 @@
+from urllib import request
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from .models import Crop, Bid
+from .models import Crop, Bid, Notification
 from .forms import CropForm, RegistrationForm, FarmerLoginForm
 
 
@@ -171,15 +173,21 @@ def bidding_page(request):
 
         crop = get_object_or_404(Crop, id=crop_id)
 
-        Bid.objects.create(
-            crop=crop,
-            buyer=request.user,
-            amount=amount
-        )
+    bid = Bid.objects.create(
+    crop=crop,
+    buyer=request.user,
+    amount=amount
+)
 
-        messages.success(request, "Your bid has been placed successfully!")
 
-        return redirect('bidding_page')
+# Notify farmer
+    Notification.objects.create(
+    user=crop.farmer,
+    message=f"{request.user.username} placed a bid of Rs.{amount} for your {crop.crop_name}"
+)
+
+
+    messages.success(request, "Your bid has been placed successfully!")
 
 
     return render(
@@ -199,8 +207,9 @@ def farmer_bids(request):
     )
 
     bids = Bid.objects.filter(
-        crop__in=crops
-    ).order_by('-amount')
+        crop__in=crops,
+        accepted=False
+        ).order_by('-amount')
 
 
     return render(

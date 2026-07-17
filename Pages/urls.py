@@ -14,5 +14,6 @@ urlpatterns = [
     path('bidding/', views.bidding_page, name='bidding_page'),
     path('farmer/bids/', views.farmer_bids,name='farmer_bids'),
     path('farmer/bids/accept/<int:bid_id>/', views.accept_bid,name='accept_bid'),
+    path('farmer/deals/', views.farmer_deals,name='farmer_deals'),
 ]
 
