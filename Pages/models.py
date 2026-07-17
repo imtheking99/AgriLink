@@ -14,3 +14,24 @@ class Crop(models.Model):
 
     def __str__(self):
         return f"{self.crop_name} - {self.quantity} ({self.farmer.username})"
+class UserProfile(models.Model):
+    USER_TYPES = (
+        ('farmer', 'Farmer'),
+        ('buyer', 'Buyer'),
+    )
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user_type = models.CharField(max_length=10, choices=USER_TYPES)
+
+    phone = models.CharField(max_length=15)
+    district = models.CharField(max_length=100)
+    address = models.TextField()
+
+    farm_size = models.CharField(max_length=100, blank=True)
+    main_crop = models.CharField(max_length=100, blank=True)
+
+    business_name = models.CharField(max_length=100, blank=True)
+    buying_interest = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} ({self.user_type})"
