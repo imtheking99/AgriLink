@@ -1,0 +1,113 @@
+{% extends 'Pages/base.html' %}
+
+{% block title %}
+Received Bids - AgriLink
+{% endblock %}
+
+
+{% block content %}
+
+<section class="marketplace">
+
+    <div class="page-header">
+        <h1>🌾 Received Bids</h1>
+        <p>View buyer offers for your listed crops.</p>
+    </div>
+
+
+    {% if bids %}
+
+    <div class="crop-grid">
+
+        {% for bid in bids %}
+
+        <div class="crop-card">
+
+            <div class="crop-details">
+
+                <h2>{{ bid.crop.crop_name }}</h2>
+
+                <p>
+                    <strong>Buyer:</strong>
+                    {{ bid.buyer.username }}
+                </p>
+
+
+                <p>
+                    <strong>Bid Amount:</strong>
+                    Rs. {{ bid.amount }}
+                </p>
+
+
+                <p>
+                    <strong>Quantity:</strong>
+                    {{ bid.crop.quantity }}
+                </p>
+
+
+                <p>
+                    <strong>District:</strong>
+                    {{ bid.crop.district }}
+                </p>
+
+
+                <p>
+                    <strong>Bid Date:</strong>
+                    {{ bid.bid_date }}
+                </p>
+
+
+                {% if bid.accepted %}
+
+                    <div class="status available">
+                        ✅ Accepted
+                    </div>
+
+                {% else %}
+
+                    <div class="status">
+                        ⏳ Pending
+                    </div>
+
+
+                    <form method="POST" action="{% url 'accept_bid' bid.id %}">
+                        {% csrf_token %}
+
+                        <button type="submit" class="btn solid">
+                            Accept Bid
+                        </button>
+
+                    </form>
+
+                {% endif %}
+
+
+            </div>
+
+        </div>
+
+
+        {% endfor %}
+
+    </div>
+
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <h2>No Bids Received</h2>
+
+        <p>
+            Buyers have not placed any bids on your crops yet.
+        </p>
+
+    </div>
+
+    {% endif %}
+
+
+</section>
+
+
+{% endblock %}

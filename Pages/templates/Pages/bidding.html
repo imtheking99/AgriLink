@@ -6,84 +6,142 @@
 
 <section class="marketplace">
 
-    <div class="page-header">
-        <h1>🌾 Crop Marketplace</h1>
-        <p>Browse available crops and place competitive bids.</p>
-    </div>
+<div class="page-header">
+    <h1>🌾 Crop Marketplace</h1>
+    <p>Browse available crops and place competitive bids.</p>
+</div>
 
-    {% if crops %}
 
-    <div class="crop-grid">
+{% if crops %}
 
-        {% for crop in crops %}
+<div class="crop-grid">
 
-        <div class="crop-card">
+{% for crop in crops %}
 
-            <div class="crop-image">
-                <img src="{{ crop.crop_image.url }}" alt="{{ crop.crop_name }}">
-            </div>
+<div class="crop-card">
 
-            <div class="crop-details">
 
-                <h2>{{ crop.crop_name }}</h2>
+<div class="crop-image">
+    <img src="{{ crop.crop_image.url }}" 
+         alt="{{ crop.crop_name }}">
+</div>
 
-                <p><strong>Farmer:</strong> {{ crop.farmer.username }}</p>
 
-                <p><strong>District:</strong> {{ crop.district }}</p>
+<div class="crop-details">
 
-                <p><strong>Quantity:</strong> {{ crop.quantity }}</p>
+<h2>{{ crop.crop_name }}</h2>
 
-                <p><strong>Harvest Date:</strong> {{ crop.expected_harvest_date }}</p>
 
-                <div class="status available">
-                    Available
-                </div>
+<p>
+<strong>Farmer:</strong>
+{{ crop.farmer.username }}
+</p>
 
-                <div class="highest-bid">
-                    Highest Bid
-                    <h3>
-                        {% if crop.highest_bid %}
-                            Rs. {{ crop.highest_bid }}
-                        {% else %}
-                            No bids yet
-                        {% endif %}
-                    </h3>
-                </div>
 
-                <form method="POST" action="{% url 'place_bid' crop.id %}">
-                    {% csrf_token %}
+<p>
+<strong>District:</strong>
+{{ crop.district }}
+</p>
 
-                    <input
-                        type="number"
-                        name="bid_amount"
-                        step="0.01"
-                        min="1"
-                        placeholder="Enter your bid (Rs.)"
-                        required
-                    >
 
-                    <button type="submit" class="btn solid">
-                        Place Bid
-                    </button>
+<p>
+<strong>Quantity:</strong>
+{{ crop.quantity }}
+</p>
 
-                </form>
 
-            </div>
+<p>
+<strong>Harvest Date:</strong>
+{{ crop.expected_harvest_date }}
+</p>
 
-        </div>
 
-        {% endfor %}
+<div class="status available">
+    Available
+</div>
 
-    </div>
 
-    {% else %}
 
-    <div class="empty-state">
-        <h2>No Crops Available</h2>
-        <p>There are currently no crops listed by farmers.</p>
-    </div>
+<div class="highest-bid">
 
-    {% endif %}
+<h3>Highest Bid</h3>
+
+
+{% with highest=crop.bids.first %}
+
+{% if highest %}
+
+<p>
+Rs. {{ highest.amount }}
+</p>
+
+{% else %}
+
+<p>No bids yet</p>
+
+{% endif %}
+
+{% endwith %}
+
+
+</div>
+
+
+
+<form method="POST">
+
+{% csrf_token %}
+
+
+<input type="hidden"
+       name="crop_id"
+       value="{{ crop.id }}">
+
+
+<input
+type="number"
+name="amount"
+step="0.01"
+min="1"
+placeholder="Enter your bid (Rs.)"
+required
+>
+
+
+<button type="submit" class="btn solid">
+Place Bid
+</button>
+
+
+</form>
+
+
+</div>
+
+</div>
+
+
+{% endfor %}
+
+</div>
+
+
+{% else %}
+
+
+<div class="empty-state">
+
+<h2>No Crops Available</h2>
+
+<p>
+There are currently no crops listed by farmers.
+</p>
+
+</div>
+
+
+{% endif %}
+
 
 </section>
 

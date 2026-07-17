@@ -45,7 +45,8 @@ class Bid(models.Model):
 
     buyer = models.ForeignKey(
         User,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="bids"
     )
 
     amount = models.DecimalField(
@@ -55,6 +56,10 @@ class Bid(models.Model):
 
     bid_date = models.DateTimeField(
         auto_now_add=True
+    )
+
+    accepted = models.BooleanField(
+        default=False
     )
 
     class Meta:
