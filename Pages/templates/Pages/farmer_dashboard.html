@@ -10,7 +10,24 @@
       <h1>Farmer Dashboard</h1>
       <p style="color: #666; margin-top: 5px;">Manage and monitor your crop listings</p>
     </div>
-    <a href="{% url 'crop_add' %}" class="btn solid"><i class="fa-solid fa-plus"></i> Register New Crop</a>
+    <div style="display:flex; gap:10px;">
+
+    <a href="{% url 'farmer_bids' %}" class="btn solid">
+        <i class="fa-solid fa-gavel"></i>
+        Received Bids
+    </a>
+
+    <a href="{% url 'farmer_deals' %}" class="btn solid">
+        <i class="fa-solid fa-handshake"></i>
+        Accepted Deals
+    </a>
+
+    <a href="{% url 'crop_add' %}" class="btn solid">
+        <i class="fa-solid fa-plus"></i>
+        Register New Crop
+    </a>
+
+</div>
   </div>
 
   <div class="weather-panel" style="margin-bottom: 25px; background: linear-gradient(135deg, #1f7a1f, #2e8b57); color: white; border-radius: 18px; padding: 20px 24px; box-shadow: 0 12px 30px rgba(0,0,0,0.12);">
@@ -73,3 +90,4 @@
   </div>
 </section>
 {% endblock %}
+

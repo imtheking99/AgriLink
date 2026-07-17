@@ -5,9 +5,9 @@
 {% block content %}
 <section class="form-section">
   <div class="form-card">
-    <h2>Farmer Registration</h2>
-    <p class="subtitle">Join AgriLink to register and manage your crop yields</p>
-    
+    <h2>Create Account</h2>
+    <p class="subtitle">Register as a Farmer or Buyer</p>
+
     {% if form.non_field_errors %}
     <div class="form-errors">
       {% for error in form.non_field_errors %}
@@ -18,16 +18,19 @@
 
     <form method="POST">
       {% csrf_token %}
-      
+
       {% for field in form %}
-      <div class="form-group">
+      <div class="form-group field-{{ field.name }}">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
         {{ field }}
+
         {% if field.help_text %}
         <span class="form-helptext">{{ field.help_text|safe }}</span>
         {% endif %}
+
         {% if field.errors %}
-        <span style="color: #dc2626; font-size: 13px;">{{ field.errors.0 }}</span>
+        <span style="color:#dc2626; font-size:13px;">{{ field.errors.0 }}</span>
         {% endif %}
       </div>
       {% endfor %}
@@ -42,4 +45,48 @@
     </div>
   </div>
 </section>
+
+<script>
+  const userTypeRadios = document.querySelectorAll('input[name="user_type"]');
+
+  const farmerFields = [
+    document.querySelector('.field-farm_size'),
+    document.querySelector('.field-main_crop')
+  ];
+
+  const buyerFields = [
+    document.querySelector('.field-business_name'),
+    document.querySelector('.field-buying_interest')
+  ];
+
+  function toggleFields() {
+    const selected = document.querySelector('input[name="user_type"]:checked');
+
+    if (!selected) return;
+
+    if (selected.value === 'farmer') {
+      farmerFields.forEach(field => {
+        if (field) field.style.display = 'flex';
+      });
+
+      buyerFields.forEach(field => {
+        if (field) field.style.display = 'none';
+      });
+    } else {
+      farmerFields.forEach(field => {
+        if (field) field.style.display = 'none';
+      });
+
+      buyerFields.forEach(field => {
+        if (field) field.style.display = 'flex';
+      });
+    }
+  }
+
+  userTypeRadios.forEach(radio => {
+    radio.addEventListener('change', toggleFields);
+  });
+
+  toggleFields();
+</script>
 {% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'Pages/base.html' %}
+
+{% block title %}Buyer Dashboard - AgriLink{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+  <div class="dashboard-header">
+    <h1>Buyer Dashboard</h1>
+  </div>
+
+  <p>Welcome buyer. Available crops will appear here.</p>
+
+  <a href="{% url 'bidding_page' %}" class="btn btn-primary">
+    Go to Bidding Page
+  </a>
+
+</section>
+{% endblock %}
+

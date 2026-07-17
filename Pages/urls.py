@@ -15,6 +15,10 @@ urlpatterns = [
     path('weather/', include (('weather.urls', 'weather'), namespace='weather')),
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin/export/', views.export_crops_report, name='export_reports'),
+    path('buyer/', views.buyer_dashboard, name='buyer_dashboard'),
+    path('bidding/', views.bidding_page, name='bidding_page'),
+    path('farmer/bids/', views.farmer_bids,name='farmer_bids'),
+    path('farmer/bids/accept/<int:bid_id>/', views.accept_bid,name='accept_bid'),
+    path('farmer/deals/', views.farmer_deals,name='farmer_deals'),
 ]
-
 
