@@ -11,17 +11,31 @@ class Crop(models.Model):
     crop_image = models.ImageField(upload_to='crops/')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=20, default='Active')
     crop_status = models.CharField(
-    max_length=20,
-    choices=[
-        ('available', 'Available'),
-        ('sold', 'Sold'),
-    ],
-    default='available'
-)
+        max_length=20,
+        choices=[
+            ('available', 'Available'),
+            ('sold', 'Sold'),
+        ],
+        default='available'
+    )
 
     def __str__(self):
         return f"{self.crop_name} - {self.quantity} ({self.farmer.username})"
+
+
+class WeatherAlert(models.Model):
+    is_active = models.BooleanField(default=True)
+    
+
+class RecentActivity(models.Model):
+    description = models.CharField(max_length=255)
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.description
 class UserProfile(models.Model):
     USER_TYPES = (
         ('farmer', 'Farmer'),

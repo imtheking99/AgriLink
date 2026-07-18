@@ -1,21 +1,46 @@
-from urllib import request
-
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse
+import pandas as pd
+import requests
 
-from .models import Crop, Bid, Notification
+from .models import Crop, WeatherAlert, RecentActivity, Bid, Notification, UserProfile
 from .forms import CropForm, RegistrationForm, FarmerLoginForm
 
 
 def home_view(request):
-    return render(request, 'Pages/home.html')
+    city = 'Colombo'
+    if request.user.is_authenticated and hasattr(request.user, 'userprofile') and request.user.userprofile.district:
+        city = request.user.userprofile.district
+        
+    api_key = '1e74f142f97c2bdc20efeb4a44461208'
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+    context = {'weather_city': city}
+    try:
+        response = requests.get(url, timeout=3)
+        if response.status_code == 200:
+            data = response.json()
+            context['temp'] = round(data['main']['temp'])
+            context['condition'] = data['weather'][0]['main']
+        else:
+            context['temp'] = 28
+            context['condition'] = 'Partly Cloudy'
+    except Exception:
+        context['temp'] = 28
+        context['condition'] = 'Partly Cloudy'
+        
+    return render(request, 'Pages/home.html', context)
 
 
 def register_view(request):
     if request.user.is_authenticated:
-        if request.user.userprofile.user_type == 'buyer':
+        if request.user.is_superuser:
+            return redirect('admin_dashboard')
+        if hasattr(request.user, 'userprofile') and request.user.userprofile.user_type == 'buyer':
             return redirect('buyer_dashboard')
         return redirect('farmer_dashboard')
 
@@ -26,7 +51,7 @@ def register_view(request):
             user = form.save()
             login(request, user)
 
-            if user.userprofile.user_type == 'buyer':
+            if hasattr(user, 'userprofile') and user.userprofile.user_type == 'buyer':
                 messages.success(request, f"Welcome to AgriLink, {user.username}! Your buyer account has been created.")
                 return redirect('buyer_dashboard')
             else:
@@ -42,7 +67,9 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        if request.user.userprofile.user_type == 'buyer':
+        if request.user.is_superuser:
+            return redirect('admin_dashboard')
+        if hasattr(request.user, 'userprofile') and request.user.userprofile.user_type == 'buyer':
             return redirect('buyer_dashboard')
         return redirect('farmer_dashboard')
 
@@ -53,7 +80,10 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
 
-            if user.userprofile.user_type == 'buyer':
+            if user.is_superuser:
+                messages.success(request, f"Welcome back, Admin {user.username}!")
+                return redirect('admin_dashboard')
+            elif hasattr(user, 'userprofile') and user.userprofile.user_type == 'buyer':
                 messages.success(request, f"Welcome back, {user.username}!")
                 return redirect('buyer_dashboard')
             else:
@@ -75,27 +105,66 @@ def logout_view(request):
 
 @login_required
 def farmer_dashboard(request):
-    if request.user.userprofile.user_type != 'farmer':
+    if request.user.is_superuser:
+        return redirect('admin_dashboard')
+    
+    profile, created = UserProfile.objects.get_or_create(
+        user=request.user,
+        defaults={
+            'user_type': 'farmer',
+            'phone': '0771234567',
+            'district': 'Colombo',
+            'address': 'Sri Lanka'
+        }
+    )
+    if profile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
     crops = Crop.objects.filter(farmer=request.user).order_by('-created_at')
-    return render(request, 'Pages/farmer_dashboard.html', {'crops': crops})
+    weather_city = crops.first().district if (crops.exists() and crops.first().district) else profile.district
+    weather_context = {'weather_city': weather_city}
+
+    try:
+        url = f"http://api.openweathermap.org/data/2.5/weather?q={weather_city}&appid=1e74f142f97c2bdc20efeb4a44461208&units=metric"
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            weather_context['weather_data'] = data
+            weather_context['weather_description'] = data['weather'][0]['description']
+        else:
+            weather_context['weather_error'] = 'Weather service unavailable.'
+    except Exception:
+        weather_context['weather_error'] = 'Weather service unavailable.'
+
+    return render(request, 'Pages/farmer_dashboard.html', {'crops': crops, **weather_context})
 
 
 @login_required
 def buyer_dashboard(request):
-    if request.user.userprofile.user_type != 'buyer':
+    if request.user.is_superuser:
+        return redirect('admin_dashboard')
+    
+    profile, created = UserProfile.objects.get_or_create(
+        user=request.user,
+        defaults={
+            'user_type': 'buyer',
+            'phone': '0771234567',
+            'district': 'Colombo',
+            'address': 'Sri Lanka'
+        }
+    )
+    if profile.user_type != 'buyer':
         return redirect('farmer_dashboard')
 
     crops = Crop.objects.filter(
-    crop_status='available'
+        crop_status='available'
     ).order_by('-created_at')
     return render(request, 'Pages/buyer_dashboard.html', {'crops': crops})
 
 
 @login_required
 def crop_create(request):
-    if request.user.userprofile.user_type != 'farmer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
     if request.method == 'POST':
@@ -119,7 +188,7 @@ def crop_create(request):
 def crop_update(request, pk):
     crop = get_object_or_404(Crop, pk=pk)
 
-    if request.user.userprofile.user_type != 'farmer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
     if crop.farmer != request.user:
@@ -145,7 +214,7 @@ def crop_update(request, pk):
 def crop_delete(request, pk):
     crop = get_object_or_404(Crop, pk=pk)
 
-    if request.user.userprofile.user_type != 'farmer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
     if crop.farmer != request.user:
@@ -160,10 +229,75 @@ def crop_delete(request, pk):
 
     return render(request, 'Pages/crop_confirm_delete.html', {'crop': crop})
 
+
+def weather_index(request):
+    city = request.GET.get('city', 'Colombo')
+    api_key = '1e74f142f97c2bdc20efeb4a44461208'
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+    context = {'city': city}
+    
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            context['weather'] = data
+            desc = data['weather'][0]['description'].lower()
+            
+            # Decide class and icon
+            if 'clear' in desc:
+                context['condition_class'] = 'sunny'
+                context['weather_icon'] = 'fa-sun'
+            elif any(w in desc for w in ['rain', 'drizzle', 'storm']):
+                context['condition_class'] = 'rainy'
+                context['weather_icon'] = 'fa-cloud-showers-heavy'
+            else:
+                context['condition_class'] = 'cloudy'
+                context['weather_icon'] = 'fa-cloud'
+            
+            # Alerts Logic
+            if data['main']['temp'] > 30:
+                context['alerts'] = ["High heat alert! Protect your crops."]
+            elif 'rain' in desc:
+                context['alerts'] = ["Rain expected! Ensure proper drainage."]
+        else:
+            context['error'] = 'City not found!'
+    except:
+        context['error'] = 'Service unavailable!'
+        
+    return render(request, 'weather/weather.html', context)
+
+#Admin
+#@user_passes_test(lambda u: u.is_superuser)
+def admin_dashboard(request):
+    total_users = User.objects.count()
+    active_crops = Crop.objects.filter(status='Active').count()
+    active_weather = WeatherAlert.objects.filter(is_active=True).count()
+    recent_actions = RecentActivity.objects.all().order_by('-created_at')[:5]
+    
+    context = {
+        'total_users': total_users,
+        'active_crops': active_crops,
+        'active_weather': active_weather,
+        'recent_actions': recent_actions,
+    }
+    return render(request, 'Pages/admin_panel.html', context)
+
+    #export report
+def export_crops_report(request):
+    
+    crops = Crop.objects.all().values('crop_name', 'quantity', 'district', 'expected_harvest_date')
+    df = pd.DataFrame(list(crops))
+    
+    
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="AgriLink_Report.xlsx"'
+    
+    df.to_excel(response, index=False)
+    return response
 @login_required
 def bidding_page(request):
 
-    if request.user.userprofile.user_type != 'buyer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'buyer':
         return redirect('farmer_dashboard')
 
     crops = Crop.objects.filter(
@@ -217,7 +351,7 @@ def bidding_page(request):
 @login_required
 def farmer_bids(request):
 
-    if request.user.userprofile.user_type != 'farmer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
     crops = Crop.objects.filter(
@@ -241,7 +375,7 @@ def farmer_bids(request):
 @login_required
 def accept_bid(request, bid_id):
 
-    if request.user.userprofile.user_type != 'farmer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
     bid = get_object_or_404(Bid, id=bid_id)
@@ -285,7 +419,7 @@ def accept_bid(request, bid_id):
 @login_required
 def farmer_deals(request):
 
-    if request.user.userprofile.user_type != 'farmer':
+    if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
 

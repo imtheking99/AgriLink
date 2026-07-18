@@ -1,0 +1,9 @@
+<div class="weather-box">
+    <h4>Weather Today</h4>
+    {% if weather %}
+        <p>{{ weather.main.temp }}°C</p>
+        <p>{{ weather.weather.0.main }}</p>
+    {% else %}
+        <p>{{ error }}</p>
+    {% endif %}
+</div>

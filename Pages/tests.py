@@ -3,13 +3,16 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import date
-from .models import Crop
+from unittest.mock import Mock, patch
+from .models import Crop, UserProfile
 
 class CropAccessControlTests(TestCase):
     def setUp(self):
         # Create two test users
         self.farmer_a = User.objects.create_user(username='farmer_a', password='password123')
+        UserProfile.objects.create(user=self.farmer_a, user_type='farmer', phone='12345', district='Galle')
         self.farmer_b = User.objects.create_user(username='farmer_b', password='password123')
+        UserProfile.objects.create(user=self.farmer_b, user_type='farmer', phone='67890', district='Colombo')
         
         # Create a small dummy image for testing file uploads
         self.dummy_image = SimpleUploadedFile(
@@ -95,3 +98,21 @@ class CropAccessControlTests(TestCase):
         response = self.client.post(delete_url)
         self.assertRedirects(response, reverse('farmer_dashboard'))
         self.assertTrue(Crop.objects.filter(id=self.crop_a.id).exists())
+
+    @patch('Pages.views.requests.get')
+    def test_dashboard_shows_weather_for_crop_district(self, mock_get):
+        """The farmer dashboard should display weather details for the crop district."""
+        mock_response = Mock(status_code=200)
+        mock_response.json.return_value = {
+            'name': 'Galle',
+            'main': {'temp': 27, 'humidity': 78},
+            'weather': [{'main': 'Clouds', 'description': 'few clouds'}],
+        }
+        mock_get.return_value = mock_response
+
+        self.client.login(username='farmer_a', password='password123')
+        response = self.client.get(reverse('farmer_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Weather for Galle')
+        self.assertContains(response, 'Few clouds')

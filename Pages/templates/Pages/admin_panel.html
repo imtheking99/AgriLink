@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriLink Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS Styles */
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; background-color: #f4f6f8; }
+        
+        /* Sidebar */
+        .sidebar { width: 250px; background-color: #1a237e; color: white; padding: 20px; }
+        .sidebar h2 { font-size: 20px; text-align: center; margin-bottom: 40px; }
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar ul li { padding: 18px 10px; border-bottom: 1px solid #303f9f; cursor: pointer; transition: 0.3s; }
+        .sidebar ul li:hover { background-color: #303f9f; }
+        
+        /* Main Section */
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        
+        /* Stats */
+        .stats-container { display: flex; gap: 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; flex: 1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
+        .card h3 { color: #1a237e; margin: 0; font-size: 28px; }
+        
+        /* Table */
+        .table-section { background: white; margin-top: 30px; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
+        
+        /* Advanced Button */
+        .export-btn {
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .export-btn:hover {
+            background: linear-gradient(135deg, #0d1350, #283593);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>AgriLink Admin</h2>
+        <ul>
+            <li><a href="{% url 'admin_dashboard' %}"></a><i class="fa-solid fa-gauge"></i> Dashboard</li>
+            <li><a href="{% url 'register' %}"></a><i class="fa-solid fa-users"></i> User Management</li>
+            <li><a href="{% url 'crop_add' %}"></a><i class="fa-solid fa-seedling"></i> Crop Management</li>
+            <li><a href="{% url 'weather:index' %}"></a><i class="fa-solid fa-cloud-sun"></i> Weather System</li>
+            <li><a href="{% url 'logout' %}"></a><i class="fa-solid fa-bell"></i> System Alerts</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>System Overview</h1>
+            <a href="{% url 'export_reports' %}" class="btn-export">
+                <i class="fa-solid fa-file-export"></i> Export Reports
+            </button>
+        </div>
+
+        <div class="stats-container">
+            <div class="card"><h3>2,540</h3><p>Total Registered Users</p></div>
+            <div class="card"><h3>128</h3><p>Active Crop Profiles</p></div>
+            <div class="card"><h3>12</h3><p>Active Weather Alerts</p></div>
+        </div>
+
+        <div class="table-section">
+            <h2>Recent Activity</h2>
+            <table>
+                <thead>
+                    <tr><th>Action</th><th>User</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>New Crop Added</td><td>Kamal Silva</td><td style="color: green; font-weight: bold;">Success</td></tr>
+                    <tr><td>Weather Alert Set</td><td>Admin</td><td style="color: orange; font-weight: bold;">Pending</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>
