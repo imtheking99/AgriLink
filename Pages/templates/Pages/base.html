@@ -89,16 +89,12 @@
         <a
           href="{% url 'farmer_dashboard' %}"
           class="{% if 'farmer' in request.path %}active{% endif %}"
-          >Farmer Dashboard</a
-        >
-        {% endif %}
-        <a
-          href="{% url 'farmer_dashboard' %}"
-          class="{% if 'farmer' in request.path %}active{% endif %}"
-          >Dashboard</a
+          > Dashboard</a
         >
         {% endif %}
 
+
+   {% endif %}
         <a href="{% url 'home' %}#about">About Us</a>
         <a href="{% url 'home' %}#features">Features</a>
         <a href="{% url 'home' %}#prices">Market Prices</a>

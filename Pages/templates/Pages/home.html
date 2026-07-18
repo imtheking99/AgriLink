@@ -45,8 +45,8 @@
     </div>
     <div class="floating-card weather">
       <p>Weather Today</p>
-      <h3>28°C</h3>
-      <span>Partly Cloudy</span>
+      <h3>{{ temp|default:"28" }}°C</h3>
+      <span>{{ condition|default:"Partly Cloudy" }}</span>
     </div>
     <div class="floating-card crop">
       <p>Top Crop</p>

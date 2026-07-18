@@ -8,12 +8,32 @@ from django.http import HttpResponse
 import pandas as pd
 import requests
 
-from .models import Crop, WeatherAlert, RecentActivity, Bid, Notification
+from .models import Crop, WeatherAlert, RecentActivity, Bid, Notification, UserProfile
 from .forms import CropForm, RegistrationForm, FarmerLoginForm
 
 
 def home_view(request):
-    return render(request, 'Pages/home.html')
+    city = 'Colombo'
+    if request.user.is_authenticated and hasattr(request.user, 'userprofile') and request.user.userprofile.district:
+        city = request.user.userprofile.district
+        
+    api_key = '1e74f142f97c2bdc20efeb4a44461208'
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+    context = {'weather_city': city}
+    try:
+        response = requests.get(url, timeout=3)
+        if response.status_code == 200:
+            data = response.json()
+            context['temp'] = round(data['main']['temp'])
+            context['condition'] = data['weather'][0]['main']
+        else:
+            context['temp'] = 28
+            context['condition'] = 'Partly Cloudy'
+    except Exception:
+        context['temp'] = 28
+        context['condition'] = 'Partly Cloudy'
+        
+    return render(request, 'Pages/home.html', context)
 
 
 def register_view(request):
@@ -87,27 +107,33 @@ def logout_view(request):
 def farmer_dashboard(request):
     if request.user.is_superuser:
         return redirect('admin_dashboard')
-    if not hasattr(request.user, 'userprofile'):
-        return redirect('home')
-    if request.user.userprofile.user_type != 'farmer':
+    
+    profile, created = UserProfile.objects.get_or_create(
+        user=request.user,
+        defaults={
+            'user_type': 'farmer',
+            'phone': '0771234567',
+            'district': 'Colombo',
+            'address': 'Sri Lanka'
+        }
+    )
+    if profile.user_type != 'farmer':
         return redirect('buyer_dashboard')
 
     crops = Crop.objects.filter(farmer=request.user).order_by('-created_at')
-    weather_city = crops.first().district if crops.exists() else 'Colombo'
+    weather_city = crops.first().district if (crops.exists() and crops.first().district) else profile.district
     weather_context = {'weather_city': weather_city}
 
     try:
-        response = requests.get(
-            f"http://api.openweathermap.org/data/2.5/weather?q={weather_city}&appid=1e74f142f97c2bdc20efeb4a44461208&units=metric",
-            timeout=5,
-        )
+        url = f"http://api.openweathermap.org/data/2.5/weather?q={weather_city}&appid=1e74f142f97c2bdc20efeb4a44461208&units=metric"
+        response = requests.get(url, timeout=5)
         if response.status_code == 200:
             data = response.json()
             weather_context['weather_data'] = data
             weather_context['weather_description'] = data['weather'][0]['description']
         else:
             weather_context['weather_error'] = 'Weather service unavailable.'
-    except requests.RequestException:
+    except Exception:
         weather_context['weather_error'] = 'Weather service unavailable.'
 
     return render(request, 'Pages/farmer_dashboard.html', {'crops': crops, **weather_context})
@@ -117,13 +143,21 @@ def farmer_dashboard(request):
 def buyer_dashboard(request):
     if request.user.is_superuser:
         return redirect('admin_dashboard')
-    if not hasattr(request.user, 'userprofile'):
-        return redirect('home')
-    if request.user.userprofile.user_type != 'buyer':
+    
+    profile, created = UserProfile.objects.get_or_create(
+        user=request.user,
+        defaults={
+            'user_type': 'buyer',
+            'phone': '0771234567',
+            'district': 'Colombo',
+            'address': 'Sri Lanka'
+        }
+    )
+    if profile.user_type != 'buyer':
         return redirect('farmer_dashboard')
 
     crops = Crop.objects.filter(
-    crop_status='available'
+        crop_status='available'
     ).order_by('-created_at')
     return render(request, 'Pages/buyer_dashboard.html', {'crops': crops})
 
