@@ -1,19 +1,969 @@
 {% extends 'Pages/base.html' %}
+{% load static %}
 
 {% block title %}Buyer Dashboard - AgriLink{% endblock %}
 
-{% block content %}
-<section class="dashboard-section">
-  <div class="dashboard-header">
-    <h1>Buyer Dashboard</h1>
-  </div>
+{% block extra_css %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
-  <p>Welcome buyer. Available crops will appear here.</p>
+  /* Global page reset/override for full height dashboard */
+  header.navbar, footer {
+    display: none !important;
+  }
+  
+  body {
+    background-color: #f3f6f4;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: 'Outfit', sans-serif;
+  }
 
-  <a href="{% url 'bidding_page' %}" class="btn btn-primary">
-    Go to Bidding Page
-  </a>
+  /* Custom Floating Alerts */
+  .message-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    max-width: 400px;
+    margin: 0;
+    padding: 0;
+  }
+  .alert {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    animation: slideIn 0.3s ease-out;
+  }
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
 
-</section>
+  /* Layout Container */
+  .dashboard-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+  }
+
+  /* Left Sidebar Styling */
+  .sidebar {
+    background-color: #082216; /* Dark forest green */
+    color: #a2c1b1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid #133824;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+  .sidebar-top {
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .logo-badge {
+    width: 36px;
+    height: 36px;
+    background-color: #1f7a43;
+    color: white;
+    font-weight: 800;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+  }
+  .logo-text {
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.5px;
+  }
+  .sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 12px;
+    color: #a2c1b1;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 15px;
+    transition: all 0.2s ease;
+  }
+  .menu-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .menu-item i {
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
+  }
+  .menu-item:hover {
+    background-color: rgba(255,255,255,0.05);
+    color: white;
+  }
+  .menu-item.active {
+    background-color: #1f7a43;
+    color: white;
+  }
+  .badge-count {
+    background-color: #2ecc71;
+    color: #082216;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  /* User Profile Card */
+  .profile-card {
+    background-color: #113320;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .profile-avatar {
+    width: 44px;
+    height: 44px;
+    background-color: #2ecc71;
+    color: #082216;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+  }
+  .profile-name {
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .profile-role {
+    color: #8aab9a;
+    font-size: 12px;
+  }
+  .sidebar-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #4a6b57;
+  }
+  .sidebar-footer a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .sidebar-footer a:hover {
+    color: white;
+  }
+
+  /* Main Panel Styling */
+  .main-panel {
+    padding: 40px;
+    overflow-y: auto;
+    max-height: 100vh;
+  }
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .header-welcome h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0c2d1c;
+    margin: 0;
+  }
+  .header-welcome p {
+    color: #7a8b80;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .search-wrapper {
+    position: relative;
+    width: 260px;
+  }
+  .search-wrapper i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
+  }
+  .search-input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    border-radius: 30px;
+    border: 1px solid #e2e8f0;
+    background-color: white;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .search-input:focus {
+    border-color: #1f7a43;
+    box-shadow: 0 0 0 3px rgba(31, 122, 67, 0.1);
+  }
+  .btn-download {
+    background-color: #1f7a43;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(31, 122, 67, 0.15);
+  }
+  .btn-download:hover {
+    background-color: #165b32;
+    transform: translateY(-1px);
+  }
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #e2e8f0;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a5568;
+    font-size: 16px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+  }
+  .icon-btn:hover {
+    background-color: #f7fafc;
+    border-color: #cbd5e0;
+  }
+  .badge-dot {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 7px;
+    height: 7px;
+    background-color: #e53e3e;
+    border-radius: 50%;
+  }
+
+  /* Stats Grid Cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background-color: white;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.01);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.03);
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #a0aec0;
+    letter-spacing: 0.5px;
+  }
+  .stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 10px 0;
+  }
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #48bb78;
+  }
+  .trend-neutral {
+    color: #718096;
+  }
+
+  /* Dashboard Columns Layout */
+  .columns-layout {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 32px;
+  }
+  @media (max-width: 1024px) {
+    .columns-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .card-section {
+    background-color: white;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.01);
+  }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0c2d1c;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+  }
+  .section-title i {
+    color: #1f7a43;
+  }
+  .section-link {
+    font-size: 13px;
+    color: #1f7a43;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  .section-link:hover {
+    color: #165b32;
+    text-decoration: underline;
+  }
+
+  /* Bids Activity Items */
+  .bid-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .bid-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .bid-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .bid-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .bid-crop-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a202c;
+  }
+  .bid-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: #718096;
+    flex-wrap: wrap;
+  }
+  .bid-details-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .bid-details-item i {
+    color: #1f7a43;
+  }
+  .bid-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .status-badge.pending {
+    background-color: #fef3c7;
+    color: #d97706;
+  }
+  .status-badge.won {
+    background-color: #dcfce7;
+    color: #15803d;
+  }
+  .status-badge.lost {
+    background-color: #fee2e2;
+    color: #b91c1c;
+  }
+  .details-link {
+    font-size: 13px;
+    color: #1f7a43;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .details-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Right Panel Components */
+  .right-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  .saved-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .filter-tag {
+    background-color: #f4f8f5;
+    border: 1px solid #e1ede5;
+    color: #1b4d32;
+    padding: 10px 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 550;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .filter-tag:hover {
+    background-color: #e8f3ec;
+    border-color: #c9e0d2;
+    transform: translateY(-1px);
+  }
+  .filter-tag i {
+    color: #1f7a43;
+  }
+  .trending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .trending-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: #f8fafc;
+    border-radius: 14px;
+    padding: 12px;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .trending-item:hover {
+    transform: translateY(-2px);
+    background-color: #f1f5f9;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  }
+  .trending-img {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    object-fit: cover;
+    background-color: #edf2f7;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .trending-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-grow: 1;
+  }
+  .trending-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a202c;
+  }
+  .trending-price {
+    font-size: 12px;
+    color: #1f7a43;
+    font-weight: 600;
+  }
+  .trending-location {
+    font-size: 11px;
+    color: #718096;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+</style>
 {% endblock %}
 
+{% block content %}
+<div class="dashboard-container">
+  
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-logo">
+        <div class="logo-badge">A</div>
+        <span class="logo-text">AgriLink</span>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <a href="{% url 'buyer_dashboard' %}" class="menu-item active">
+          <div class="menu-item-left">
+            <i class="fa-solid fa-table-columns"></i>
+            <span>Dashboard</span>
+          </div>
+        </a>
+        <a href="{% url 'bidding_page' %}" class="menu-item">
+          <div class="menu-item-left">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Search Crops</span>
+          </div>
+        </a>
+        <a href="{% url 'bidding_page' %}" class="menu-item">
+          <div class="menu-item-left">
+            <i class="fa-solid fa-gavel"></i>
+            <span>My Bids</span>
+          </div>
+          {% if active_bids_count > 0 %}
+            <span class="badge-count">{{ active_bids_count }}</span>
+          {% endif %}
+        </a>
+        <!-- <a href="{% url 'weather:index' %}?city={{ profile.district }}" class="menu-item">
+          <div class="menu-item-left">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Market Insights</span>
+          </div>
+        </a> -->
+        <a href="#" class="menu-item">
+          <div class="menu-item-left">
+            <i class="fa-solid fa-book-open"></i>
+            <span>Buyer Guide</span>
+          </div>
+        </a>
+      </nav>
+    </div>
+    
+    <div>
+      <div class="profile-card">
+        <div class="profile-avatar">
+          {{ request.user.username|slice:":2"|upper }}
+        </div>
+        <div class="profile-info">
+          <span class="profile-name">{{ request.user.username|capfirst }}</span>
+          <span class="profile-role">Premium Buyer</span>
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <span>© 2026 AgriLink</span>
+        <a href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-panel">
+    <header class="main-header">
+      <div class="header-welcome">
+        <h1>Buyer Dashboard</h1>
+        <p>WELCOME BACK, {{ request.user.username|upper }}. HERE'S YOUR AGRICULTURAL TRADING OVERVIEW.</p>
+      </div>
+      
+      <div class="header-actions">
+        <div class="search-wrapper">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="quick-search" class="search-input" placeholder="Quick search crops...">
+        </div>
+
+        <div class="icon-btn">
+          <i class="fa-regular fa-bell"></i>
+          <div class="badge-dot"></div>
+        </div>
+        
+        <div class="icon-btn">
+          <i class="fa-regular fa-envelope"></i>
+        </div>
+      </div>
+    </header>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div>
+          <span class="stat-label">Active Bids</span>
+          <div class="stat-value">{{ active_bids_count|default:"2" }}</div>
+        </div>
+        <div class="stat-trend">
+          <i class="fa-solid fa-arrow-up"></i>
+          <span>+2 this week</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div>
+          <span class="stat-label">Won Bids</span>
+          <div class="stat-value">{{ won_bids_count|default:"1" }}</div>
+        </div>
+        <div class="stat-trend">
+          <i class="fa-solid fa-check"></i>
+          <span>4 this month</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div>
+          <span class="stat-label">Saved Searches</span>
+          <div class="stat-value">3</div>
+        </div>
+        <div class="stat-trend trend-neutral">
+          <i class="fa-regular fa-bookmark"></i>
+          <span>2 matches found</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div>
+          <span class="stat-label">Total Spent (YTD)</span>
+          <div class="stat-value">{{ total_spent_formatted|default:"$0.8k" }}</div>
+        </div>
+        <div class="stat-trend">
+          <i class="fa-solid fa-arrow-up"></i>
+          <span>+12.4% vs last year</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom content split -->
+    <div class="columns-layout">
+      
+      <!-- Recent Bids Activity -->
+      <section class="card-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <i class="fa-solid fa-gavel"></i>
+            <span>Recent Bids Activity</span>
+          </h2>
+          <a href="{% url 'bidding_page' %}" class="section-link">View all tracker</a>
+        </div>
+        
+        <div class="bid-list">
+          {% if buyer_bids %}
+            {% for bid in buyer_bids %}
+              <div class="bid-item">
+                <div class="bid-meta">
+                  <div class="bid-crop-name">{{ bid.crop.crop_name|capfirst }}</div>
+                  <div class="bid-details">
+                    <div class="bid-details-item">
+                      <i class="fa-solid fa-location-dot"></i>
+                      <span>{{ bid.crop.district|capfirst }}</span>
+                    </div>
+                    <div class="bid-details-item">
+                      <i class="fa-solid fa-weight-hanging"></i>
+                      <span>{{ bid.crop.quantity }}</span>
+                    </div>
+                    <div class="bid-details-item">
+                      <i class="fa-solid fa-coins"></i>
+                      <span>Rs. {{ bid.amount }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="bid-actions">
+                  {% if bid.accepted %}
+                    <span class="status-badge won">Won</span>
+                  {% elif bid.crop.crop_status == 'sold' %}
+                    <span class="status-badge lost">Lost</span>
+                  {% else %}
+                    <span class="status-badge pending">Pending</span>
+                  {% endif %}
+                  <a href="{% url 'bidding_page' %}" class="details-link">Details</a>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <!-- Mock Fallback matching reference image when DB is empty -->
+            <div class="bid-item">
+              <div class="bid-meta">
+                <div class="bid-crop-name">Organic Tomatoes</div>
+                <div class="bid-details">
+                  <div class="bid-details-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Kiambu</span>
+                  </div>
+                  <div class="bid-details-item">
+                    <i class="fa-solid fa-weight-hanging"></i>
+                    <span>500 kg</span>
+                  </div>
+                  <div class="bid-details-item">
+                    <i class="fa-solid fa-coins"></i>
+                    <span>$2.65/kg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="bid-actions">
+                <span class="status-badge pending">Pending</span>
+                <a href="{% url 'bidding_page' %}" class="details-link">Details</a>
+              </div>
+            </div>
+            
+            <div class="bid-item">
+              <div class="bid-meta">
+                <div class="bid-crop-name">Premium Avocado</div>
+                <div class="bid-details">
+                  <div class="bid-details-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Murang'a</span>
+                  </div>
+                  <div class="bid-details-item">
+                    <i class="fa-solid fa-weight-hanging"></i>
+                    <span>200 kg</span>
+                  </div>
+                  <div class="bid-details-item">
+                    <i class="fa-solid fa-coins"></i>
+                    <span>$3.95/kg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="bid-actions">
+                <span class="status-badge won">Won</span>
+                <a href="{% url 'bidding_page' %}" class="details-link">Details</a>
+              </div>
+            </div>
+            
+            <div class="bid-item">
+              <div class="bid-meta">
+                <div class="bid-crop-name">Green Maize</div>
+                <div class="bid-details">
+                  <div class="bid-details-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Nakuru</span>
+                  </div>
+                  <div class="bid-details-item">
+                    <i class="fa-solid fa-weight-hanging"></i>
+                    <span>1200 kg</span>
+                  </div>
+                  <div class="bid-details-item">
+                    <i class="fa-solid fa-coins"></i>
+                    <span>$1.25/kg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="bid-actions">
+                <span class="status-badge pending">Pending</span>
+                <a href="{% url 'bidding_page' %}" class="details-link">Details</a>
+              </div>
+            </div>
+            
+            <div class="bid-item">
+              <div class="bid-meta">
+                <div class="bid-crop-name">French Beans</div>
+                <div class="bid-details">
+                  <div class="bid-details-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Thika</span>
+                  </div>
+                  <div class="bid-details-item">
+                    <i class="fa-solid fa-weight-hanging"></i>
+                    <span>350 kg</span>
+                  </div>
+                  <div class="bid-details-item">
+                    <i class="fa-solid fa-coins"></i>
+                    <span>$1.95/kg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="bid-actions">
+                <span class="status-badge lost">Lost</span>
+                <a href="{% url 'bidding_page' %}" class="details-link">Details</a>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+      
+      <!-- Right columns sections -->
+      <div class="right-sections">
+        
+        <!-- Saved Search Filters -->
+        <section class="card-section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fa-regular fa-bookmark"></i>
+              <span>Saved Search Filters</span>
+            </h2>
+            <a href="#" class="section-link">Manage</a>
+          </div>
+          
+          <div class="saved-filters">
+            <a href="{% url 'bidding_page' %}" class="filter-tag">
+              <i class="fa-regular fa-bookmark"></i>
+              <span>Tomatoes · Kiambu · Tomato</span>
+            </a>
+            <a href="{% url 'bidding_page' %}" class="filter-tag">
+              <i class="fa-regular fa-bookmark"></i>
+              <span>Avocado · Murang'a · Avocado</span>
+            </a>
+            <a href="{% url 'bidding_page' %}" class="filter-tag">
+              <i class="fa-regular fa-bookmark"></i>
+              <span>Maize · Nakuru · Maize</span>
+            </a>
+          </div>
+        </section>
+        
+        <!-- Hot Demand Trending Crops -->
+        <section class="card-section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fa-solid fa-fire" style="color: #ff6b6b;"></i>
+              <span>Hot Demand Trending Crops</span>
+            </h2>
+          </div>
+          
+          <div class="trending-list">
+            {% if trending_crops %}
+              {% for crop in trending_crops %}
+                <a href="{% url 'bidding_page' %}" class="trending-item">
+                  <div class="trending-img">
+                    {% if crop.crop_name|lower == 'tomato' or crop.crop_name|lower == 'tomatoes' %}
+                      🍅
+                    {% elif crop.crop_name|lower == 'avocado' %}
+                      🥑
+                    {% elif crop.crop_name|lower == 'maize' or crop.crop_name|lower == 'corn' %}
+                      🌽
+                    {% elif crop.crop_name|lower == 'carrot' or crop.crop_name|lower == 'carrots' %}
+                      🥕
+                    {% elif crop.crop_name|lower == 'apple' or crop.crop_name|lower == 'apples' %}
+                      🍎
+                    {% else %}
+                      🌾
+                    {% endif %}
+                  </div>
+                  <div class="trending-info">
+                    <div class="trending-name">{{ crop.crop_name|capfirst }}</div>
+                    {% with highest=crop.bids.first %}
+                      {% if highest %}
+                        <div class="trending-price">Rs. {{ highest.amount }}</div>
+                      {% else %}
+                        <div class="trending-price">No bids yet</div>
+                      {% endif %}
+                    {% endwith %}
+                    <div class="trending-location">
+                      <i class="fa-solid fa-location-dot"></i>
+                      <span>{{ crop.district|capfirst }}</span>
+                    </div>
+                  </div>
+                </a>
+              {% endfor %}
+            {% else %}
+              <!-- Mock Fallback matching reference image when DB is empty -->
+              <a href="{% url 'bidding_page' %}" class="trending-item">
+                <div class="trending-img">🥕</div>
+                <div class="trending-info">
+                  <div class="trending-name">Baby Carrots</div>
+                  <div class="trending-price">$2.40 / kg</div>
+                  <div class="trending-location">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Nyeri</span>
+                  </div>
+                </div>
+              </a>
+              
+              <a href="{% url 'bidding_page' %}" class="trending-item">
+                <div class="trending-img">🍎</div>
+                <div class="trending-info">
+                  <div class="trending-name">Pink Lady Apples</div>
+                  <div class="trending-price">$3.10 / kg</div>
+                  <div class="trending-location">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Eldoret</span>
+                  </div>
+                </div>
+              </a>
+              
+              <a href="{% url 'bidding_page' %}" class="trending-item">
+                <div class="trending-img">🫑</div>
+                <div class="trending-info">
+                  <div class="trending-name">Bell Peppers</div>
+                  <div class="trending-price">$1.85 / kg</div>
+                  <div class="trending-location">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Machakos</span>
+                  </div>
+                </div>
+              </a>
+            {% endif %}
+          </div>
+        </section>
+        
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Simple quick search execution on enter key press
+  document.getElementById('quick-search').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      window.location.href = "{% url 'bidding_page' %}?search=" + encodeURIComponent(this.value);
+    }
+  });
+</script>
+{% endblock %}

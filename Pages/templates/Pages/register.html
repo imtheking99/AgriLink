@@ -2,7 +2,56 @@
 
 {% block title %}Register - AgriLink{% endblock %}
 
+{% block extra_css %}
+<style>
+  /* Keep User Type label above options */
+  .field-user_type {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  .field-user_type > label {
+    display: block !important;
+    margin-bottom: 0 !important;
+    font-weight: 700 !important;
+  }
+  /* Vertically stack choices container */
+  #id_user_type {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    margin-top: 4px !important;
+    padding: 0 !important;
+    list-style: none !important;
+  }
+  #id_user_type li {
+    list-style-type: none !important;
+    margin: 0 !important;
+  }
+  /* Align radio button inline directly next to/in front of the text */
+  .field-user_type label {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    color: #333 !important;
+  }
+  /* Overrides for the radio input widget */
+  .field-user_type input.user-type-radio {
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+    accent-color: var(--green) !important;
+    cursor: pointer !important;
+    display: inline-block !important;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
+
 <section class="form-section">
   <div class="form-card">
     <h2>Create Account</h2>
