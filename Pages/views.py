@@ -156,10 +156,41 @@ def buyer_dashboard(request):
     if profile.user_type != 'buyer':
         return redirect('farmer_dashboard')
 
-    crops = Crop.objects.filter(
-        crop_status='available'
-    ).order_by('-created_at')
-    return render(request, 'Pages/buyer_dashboard.html', {'crops': crops})
+    from django.db.models import Sum
+    
+    # Get all bids placed by this buyer
+    buyer_bids = Bid.objects.filter(buyer=request.user).order_by('-bid_date')
+    
+    # Calculate stats
+    active_bids_count = buyer_bids.filter(accepted=False, crop__crop_status='available').count()
+    won_bids_count = buyer_bids.filter(accepted=True).count()
+    
+    total_spent = buyer_bids.filter(accepted=True).aggregate(total=Sum('amount'))['total'] or 0
+    # Format total spent in thousands if large, or display as is
+    if total_spent >= 1000:
+        total_spent_formatted = f"Rs. {total_spent/1000:.1f}k"
+    else:
+        total_spent_formatted = f"Rs. {total_spent:.2f}"
+
+    # Hot Demand / Trending Crops (random or latest available crops)
+    trending_crops = Crop.objects.filter(crop_status='available').order_by('?')[:3]
+    if not trending_crops.exists():
+        trending_crops = Crop.objects.filter(crop_status='available')[:3]
+
+    # Available crops for search
+    crops = Crop.objects.filter(crop_status='available').order_by('-created_at')
+
+    context = {
+        'profile': profile,
+        'crops': crops,
+        'buyer_bids': buyer_bids[:5], # Show up to 5 recent bids
+        'active_bids_count': active_bids_count,
+        'won_bids_count': won_bids_count,
+        'total_spent_formatted': total_spent_formatted,
+        'trending_crops': trending_crops,
+    }
+    return render(request, 'Pages/buyer_dashboard.html', context)
+
 
 
 @login_required
@@ -300,9 +331,17 @@ def bidding_page(request):
     if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'buyer':
         return redirect('farmer_dashboard')
 
-    crops = Crop.objects.filter(
-    crop_status='available'
-    ).order_by('-created_at')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    crop_name = request.GET.get('crop_name')
+    crops = Crop.objects.filter(crop_status='available')
+    if crop_name:
+        crops = crops.filter(crop_name__icontains=crop_name)
+    if start_date:
+        crops = crops.filter(expected_harvest_date__gte=start_date)
+    if end_date:
+        crops = crops.filter(expected_harvest_date__lte=end_date)
+    crops = crops.order_by('-created_at')
 
 
     if request.method == "POST":

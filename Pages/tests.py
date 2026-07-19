@@ -116,3 +116,97 @@ class CropAccessControlTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Weather for Galle')
         self.assertContains(response, 'Few clouds')
+
+
+class BuyerDashboardTests(TestCase):
+    def setUp(self):
+        # Create a buyer user
+        self.buyer = User.objects.create_user(username='buyer_test', password='password123')
+        UserProfile.objects.create(user=self.buyer, user_type='buyer', phone='12345', district='Colombo')
+
+        # Create a farmer user
+        self.farmer = User.objects.create_user(username='farmer_test', password='password123')
+        UserProfile.objects.create(user=self.farmer, user_type='farmer', phone='67890', district='Kandy')
+
+        # Create a crop and bid
+        self.dummy_image = SimpleUploadedFile(
+            name='test_crop.jpg',
+            content=b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b',
+            content_type='image/gif'
+        )
+        self.crop = Crop.objects.create(
+            farmer=self.farmer,
+            crop_name='Carrot',
+            quantity='100 kg',
+            district='Kandy',
+            expected_harvest_date=date(2026, 8, 15),
+            crop_image=self.dummy_image
+        )
+
+    def test_anonymous_redirect(self):
+        """Verify that anonymous users are redirected to login when accessing buyer dashboard."""
+        response = self.client.get(reverse('buyer_dashboard'))
+        self.assertRedirects(response, '/login/?next=/buyer/')
+
+    def test_farmer_restricted_from_buyer_dashboard(self):
+        """Verify that farmer user is redirected to farmer dashboard when trying to access buyer dashboard."""
+        self.client.login(username='farmer_test', password='password123')
+        response = self.client.get(reverse('buyer_dashboard'))
+        self.assertRedirects(response, reverse('farmer_dashboard'))
+
+    def test_buyer_can_view_dashboard(self):
+        """Verify that buyer user can view buyer dashboard and context is calculated properly."""
+        self.client.login(username='buyer_test', password='password123')
+        response = self.client.get(reverse('buyer_dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Buyer Dashboard')
+        self.assertIn('active_bids_count', response.context)
+        self.assertIn('won_bids_count', response.context)
+        self.assertIn('total_spent_formatted', response.context)
+
+    def test_buyer_can_filter_bidding_page_by_harvest_date(self):
+        """Verify that a buyer can filter crop listings on the bidding page by crop name and harvest date range."""
+        # Create another crop with a different harvest date
+        Crop.objects.create(
+            farmer=self.farmer,
+            crop_name='Leeks',
+            quantity='50 kg',
+            district='Nuwara Eliya',
+            expected_harvest_date=date(2026, 9, 20),
+            crop_image=self.dummy_image
+        )
+
+        self.client.login(username='buyer_test', password='password123')
+
+        # Request bidding page with range matching only Carrot crop (2026-08-01 to 2026-08-31)
+        response = self.client.get(reverse('bidding_page') + '?start_date=2026-08-01&end_date=2026-08-31')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<h2>Carrot</h2>')
+        self.assertNotContains(response, '<h2>Leeks</h2>')
+
+        # Request bidding page with range matching only Leeks crop (2026-09-01 to 2026-09-30)
+        response = self.client.get(reverse('bidding_page') + '?start_date=2026-09-01&end_date=2026-09-30')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<h2>Leeks</h2>')
+        self.assertNotContains(response, '<h2>Carrot</h2>')
+
+        # Request bidding page with range matching both crops (2026-08-01 to 2026-10-01)
+        response = self.client.get(reverse('bidding_page') + '?start_date=2026-08-01&end_date=2026-10-01')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<h2>Carrot</h2>')
+        self.assertContains(response, '<h2>Leeks</h2>')
+
+        # Request bidding page with name filter matching Carrot
+        response = self.client.get(reverse('bidding_page') + '?crop_name=Carrot')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<h2>Carrot</h2>')
+        self.assertNotContains(response, '<h2>Leeks</h2>')
+
+        # Request bidding page with name filter matching Carrot but out of date range
+        response = self.client.get(reverse('bidding_page') + '?crop_name=Carrot&start_date=2026-09-01')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, '<h2>Carrot</h2>')
+        self.assertNotContains(response, '<h2>Leeks</h2>')
+
+
+

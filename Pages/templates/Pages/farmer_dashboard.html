@@ -3,6 +3,26 @@
 {% load weather_tags %}
 {% block title %}Farmer Dashboard - AgriLink{% endblock %}
 
+{% block extra_css %}
+<style>
+  /* Align icon and text inside all buttons on the page */
+  .btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+  }
+  .btn i {
+    margin-right: 8px !important;
+  }
+.btn solid{
+  display: flex !important;
+  align-items: center !important;
+}
+
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="dashboard-section">
   <div class="dashboard-header">
