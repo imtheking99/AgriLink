@@ -68,6 +68,142 @@
     align-items: center;
     gap: 6px;
   }
+
+  /* Crop Card layout and size capping */
+  .crop-card {
+    height: 540px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+  }
+  .crop-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  }
+  .crop-image {
+    width: 100% !important;
+    height: 170px !important;
+    overflow: hidden !important;
+  }
+  .crop-image img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  .crop-details {
+    padding: 20px !important;
+    flex-grow: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+  .crop-details h2 {
+    font-size: 20px !important;
+    margin-bottom: 4px !important;
+    color: #003d1f;
+  }
+  .crop-details p {
+    margin: 4px 0 !important;
+    font-size: 14px !important;
+    color: #4a5568;
+  }
+  .status.available {
+    display: inline-block !important;
+    width: fit-content !important;
+    background-color: #dcfce7 !important;
+    color: #15803d !important;
+    padding: 4px 10px !important;
+    border-radius: 20px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+  }
+  .highest-bid {
+    background-color: #f1f5f9 !important;
+    padding: 10px 14px !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin: 8px 0 !important;
+  }
+  .highest-bid h3 {
+    margin: 0 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    color: #64748b !important;
+    letter-spacing: 0.5px !important;
+    font-weight: 700 !important;
+  }
+  .highest-bid p {
+    margin: 0 !important;
+    font-weight: 700 !important;
+    color: var(--green) !important;
+    font-size: 15px !important;
+  }
+  
+  /* Bid Form Styling */
+  .bid-form {
+    margin-top: 5px !important;
+  }
+  .bid-input-group {
+    display: flex !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background-color: #f8fafc !important;
+    transition: all 0.2s ease !important;
+    height: 44px !important;
+  }
+  .bid-input-group:focus-within {
+    border-color: var(--green) !important;
+    background-color: white !important;
+    box-shadow: 0 0 0 3px rgba(0, 125, 60, 0.12) !important;
+  }
+  .bid-input {
+    flex: 1 !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+    font-family: inherit !important;
+    outline: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    height: 100% !important;
+  }
+  /* Remove number input spin buttons */
+  .bid-input::-webkit-outer-spin-button,
+  .bid-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .bid-input[type=number] {
+    -moz-appearance: textfield;
+  }
+  .bid-submit-btn {
+    border-radius: 0 !important;
+    padding: 0 16px !important;
+    font-size: 13px !important;
+    margin: 0 !important;
+    height: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    background-color: var(--green) !important;
+    color: white !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s !important;
+    white-space: nowrap !important;
+  }
+  .bid-submit-btn:hover {
+    background-color: #005a2b !important;
+    transform: none !important;
+  }
 </style>
 {% endblock %}
 
@@ -191,7 +327,7 @@ Rs. {{ highest.amount }}
 
 
 
-<form method="POST">
+<form method="POST" class="bid-form">
 
 {% csrf_token %}
 
@@ -201,6 +337,7 @@ Rs. {{ highest.amount }}
        value="{{ crop.id }}">
 
 
+<div class="bid-input-group">
 <input
 type="number"
 name="amount"
@@ -208,12 +345,14 @@ step="0.01"
 min="1"
 placeholder="Enter your bid (Rs.)"
 required
+class="bid-input"
 >
 
 
-<button type="submit" class="btn solid">
+<button type="submit" class="btn solid bid-submit-btn">
 Place Bid
 </button>
+</div>
 
 
 </form>
